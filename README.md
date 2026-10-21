@@ -1,126 +1,152 @@
 <div align="center">
 
-# 🦆 逃离鸭科夫联机模组 · 正式版
+# 🦆 Кооп-мод для Escape From Duckov · релизная версия
 
-**让《逃离鸭科夫》的单人冒险变成可以和朋友一起探索、战斗与撤离的合作体验。**
+**Превращает одиночное приключение в «Escape from Duckov» в кооператив: исследуйте карты, сражайтесь и эвакуируйтесь вместе с друзьями.**
 
-[![Version](https://img.shields.io/badge/Version-1.4.0-2ea44f?style=flat-square)](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)
-[![Steam Workshop](https://img.shields.io/badge/Steam-创意工坊-1b2838?style=flat-square&logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)
-[![Stars](https://img.shields.io/github/stars/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview?style=flat-square&logo=github)](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/stargazers)
-[![Forks](https://img.shields.io/github/forks/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview?style=flat-square&logo=github)](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/network/members)
-[![Issues](https://img.shields.io/github/issues/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview?style=flat-square&logo=github)](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview?style=flat-square&logo=github)](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/commits/master)
+[![Version](https://img.shields.io/badge/Version-1.4.0--max.1-2ea44f?style=flat-square)](CHANGELOG.md)
+[![Steam Workshop](https://img.shields.io/badge/Steam-Мастерская-1b2838?style=flat-square&logo=steam)](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)
+[![Upstream](https://img.shields.io/badge/Оригинал-Mr.sans%20%26%20InitLoader-181717?style=flat-square&logo=github)](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview)
 [![License](https://img.shields.io/badge/License-Modified%20AGPL--3.0-blue?style=flat-square)](LICENSE.txt)
 
-**[Steam 创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)** · **[更新记录](CHANGELOG.md)** · **[问题反馈](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/issues)**
+**[Мастерская Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)** · **[История изменений](CHANGELOG.md)** · **[Оригинальный репозиторий](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview)**
 
-[English](README_EN.md) | **简体中文**
+**Русский** | [English](README_EN.md) | [简体中文](README_ZH.md)
 
 </div>
 
 > [!IMPORTANT]
-> 当前版本为 **v1.4.0**。参与联机的玩家应安装相同版本；更新或测试前建议备份重要存档。
+> Это доработанная сборка **v1.4.0-max.1** на основе оригинальной **v1.4.0**. У всех участников игры должна стоять одна и та же сборка, иначе мод не даст подключиться. Перед обновлением или тестами сделайте копию важных сохранений.
 
-## 📖 项目简介
+## 🔧 Что добавлено в этой сборке
 
-**Escape From Duckov Coop Mod** 是为《逃离鸭科夫》（Escape From Duckov）开发的联机合作模组。项目专注于同步玩家、AI、战斗、场景交互与战利品等核心游戏状态，让原本的单人流程能够与朋友共同体验。
+Сборка основана на оригинальном моде **v1.4.0**. Автор оригинала — [Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview). Все изменения в коде помечены комментарием `[max]`.
 
-| 项目 | 当前信息 |
+| Что | Как работает |
 | --- | --- |
-| 模组版本 | **v1.4.0** |
-| 发布状态 | **正式版** |
-| 发布渠道 | [Steam 创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282) |
-| 创意工坊 ID | `3591341282` |
-| 联机方式 | 局域网 / 在线联机 |
-| 构建目标 | .NET Standard 2.1 |
+| 📦 Обысканные контейнеры | Когда кто-то полностью обыскал контейнер, у всех игроков метка становится серой, а все предметы внутри считаются осмотренными. Тот, кто зашёл в рейд позже, получает это от хоста. |
+| 👻 Враги в режиме наблюдения | После смерти мод держит врагов вокруг того, за кем вы наблюдаете, а не вокруг вашего трупа. Хост отправляет погибшему игроку врагов рядом с живыми игроками. |
+| 🌉 Мосты и стройплощадки | Материалы тратит тот, кто строит, а у остальных площадка достраивается сама. Хост досылает и площадки, построенные раньше. |
+| 🏠 Бункер в общем режиме | Гостю доступны модули, открытые заданиями из его личного сохранения, даже если у хоста они ещё не открыты. |
 
-## ✨ 功能概览
+### Установка поверх мода из Мастерской
 
-| 模块 | 已支持内容 |
+1. Подпишитесь на мод в [Мастерской Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282) вместе с зависимостями (HarmonyLib, LiteNetLib, Console Mod) и один раз запустите игру.
+2. Закройте игру и откройте папку мода:
+
+   ```text
+   Steam\steamapps\workshop\content\3167020\3591341282\
+   ```
+
+3. Замените файлы `EscapeFromDuckovCoopMod.dll` и `EscapeFromDuckovModApi.dll` на файлы из этой сборки, а папку `Localization` — на папку из этой сборки.
+4. После обновления мода в Мастерской или проверки файлов игры Steam вернёт оригинальные файлы, и замену нужно повторить.
+
+Меню мода открывается клавишей `=`.
+
+## 📖 О проекте
+
+**Escape From Duckov Coop Mod** — кооперативный мод для игры «Escape from Duckov». Он синхронизирует основное состояние игры: игроков, ИИ, бой, взаимодействие с окружением и лут, — чтобы одиночную кампанию можно было пройти вместе с друзьями.
+
+| Параметр | Значение |
 | --- | --- |
-| 👥 玩家同步 | 位置、动作、外观、装备、血量与玩家名称 |
-| 🤖 AI 同步 | 敌人生成、移动、状态、受伤、死亡与血条 |
-| ⚔️ 战斗同步 | 枪械、近战、投掷物、伤害与属性效果 |
-| 📦 战利品同步 | 掉落物、战利品箱、拾取与场景容器 |
-| 🗺️ 场景同步 | 门、可破坏物、付费交互、抽奖装置与挑战触发器 |
-| 🚙 载具同步 | 载具状态、乘坐、控制权与加油状态 |
-| 🎮 联机流程 | 房间版本校验、地图切换投票、重连与死亡观战 |
-| 🖥️ 联机界面 | 房间管理、同步设置、状态提示与主题界面 |
+| Версия мода | **v1.4.0-max.1** (на основе v1.4.0) |
+| Статус | **Релиз** |
+| Где взять оригинал | [Мастерская Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282) |
+| ID в Мастерской | `3591341282` |
+| Способ игры | Локальная сеть / интернет |
+| Целевая платформа сборки | .NET Standard 2.1 |
 
-## 🚀 快速开始
+## ✨ Возможности
 
-普通玩家无需下载源码或手动编译：
+| Модуль | Что синхронизируется |
+| --- | --- |
+| 👥 Игроки | Позиция, анимации, внешность, снаряжение, здоровье и имена игроков |
+| 🤖 ИИ | Появление врагов, движение, состояние, урон, смерть и полоски здоровья |
+| ⚔️ Бой | Огнестрельное и холодное оружие, метательные предметы, урон и эффекты состояний |
+| 📦 Лут | Выпавшие предметы, ящики с лутом, подбор предметов и контейнеры на карте |
+| 🗺️ Окружение | Двери, разрушаемые объекты, платные взаимодействия, лотерейные автоматы и триггеры испытаний |
+| 🚙 Транспорт | Состояние транспорта, посадка, управление и заправка |
+| 🎮 Сетевая игра | Проверка версий в комнате, голосование за смену карты, переподключение и наблюдение после смерти |
+| 🖥️ Интерфейс | Управление комнатой, настройки синхронизации, подсказки о состоянии и тематическое оформление |
 
-1. 在 [Steam 创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282) 订阅模组。
-2. 启动游戏，并在模组管理界面中启用本模组。
-3. 确认所有参与联机的玩家使用相同版本。
-4. 由一名玩家创建联机房间，其他玩家加入后即可开始游戏。
+## 🚀 Быстрый старт
 
-需要自行构建或参与开发时，请继续阅读下方的编译指南。
+Обычным игрокам не нужно скачивать исходники или собирать мод вручную:
 
-## 🛠️ 编译指南
+1. Подпишитесь на мод в [Мастерской Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282).
+2. Запустите игру и включите мод в меню управления модами.
+3. Убедитесь, что у всех участников одна и та же версия.
+4. Один игрок создаёт комнату, остальные подключаются к ней — можно играть.
 
-### 前置要求
+Чтобы поставить эту доработанную сборку, выполните шаги из раздела [«Установка поверх мода из Мастерской»](#установка-поверх-мода-из-мастерской).
 
-- Visual Studio 2019 或更高版本
-- 支持 .NET Standard 2.1 的 .NET SDK
-- 已安装《逃离鸭科夫》
+Если хотите собрать мод сами или участвовать в разработке, читайте инструкцию по сборке ниже.
 
-### 1. 配置游戏路径
+## 🛠️ Сборка
 
-首次编译前，需要设置游戏根目录环境变量 `DUCKOV_GAME_DIRECTORY`。
+### Требования
 
-#### 自动配置（推荐）
+- Visual Studio 2019 или новее
+- .NET SDK с поддержкой .NET Standard 2.1
+- Установленная игра «Escape from Duckov»
 
-1. 双击项目根目录中的 `SetEnvVars_Permanent.bat`。
-2. 按提示输入游戏文件夹的完整路径，例如：
+### 1. Укажите путь к игре
+
+Перед первой сборкой задайте переменную окружения `DUCKOV_GAME_DIRECTORY` с путём к корневой папке игры.
+
+#### Автоматически (рекомендуется)
+
+1. Запустите `SetEnvVars_Permanent.bat` из корня проекта.
+2. Введите полный путь к папке игры, например:
 
    ```text
    C:\Steam\steamapps\common\Escape from Duckov
    ```
 
-3. 脚本会写入当前用户的永久环境变量。
-4. 完全关闭并重新打开 Visual Studio 或命令行，使变量生效。
+3. Скрипт запишет постоянную переменную окружения для текущего пользователя.
+4. Полностью закройте и снова откройте Visual Studio или командную строку, чтобы переменная подхватилась.
 
-#### 手动配置
+#### Вручную
 
-在 Windows 的“环境变量”设置中新增用户变量：
+В настройках «Переменные среды» Windows добавьте переменную пользователя:
 
 ```text
-变量名：DUCKOV_GAME_DIRECTORY
-变量值：游戏根目录的完整路径
+Имя переменной:     DUCKOV_GAME_DIRECTORY
+Значение переменной: полный путь к корневой папке игры
 ```
 
-### 2. 准备依赖
+### 2. Подготовьте зависимости
 
-确认 `Shared` 文件夹中包含以下依赖：
+Проверьте, что в папке `Shared` есть:
 
 - `0Harmony.dll`
 - `LiteNetLib.dll`
 
-游戏自身的程序集会根据 `DUCKOV_GAME_DIRECTORY` 自动从 `Duckov_Data\Managed` 目录引用。
+Сборки самой игры подключаются автоматически из папки `Duckov_Data\Managed` по пути из `DUCKOV_GAME_DIRECTORY`.
 
-### 3. 编译项目
+### 3. Соберите проект
 
-1. 打开 `EscapeFromDuckovCoopMod.sln`。
-2. 选择 `Release` 配置。
-3. 生成解决方案。
+1. Откройте `EscapeFromDuckovCoopMod.sln`.
+2. Выберите конфигурацию `Release`.
+3. Соберите решение.
 
-编译输出位于 `EscapeFromDuckovCoopMod/bin/Release/`。
+Результат сборки появится в `EscapeFromDuckovCoopMod/bin/Release/`.
 
-### 常见问题
+> В этой сборке из проектов убрана ссылка на NuGet-пакет `Polyfill`: код собирается и без него, а NuGet для сборки не нужен.
+
+### Частые вопросы
 
 <details>
-<summary><strong>编译时提示找不到游戏 DLL</strong></summary>
+<summary><strong>При сборке не находятся DLL игры</strong></summary>
 
-确认 `DUCKOV_GAME_DIRECTORY` 指向游戏根目录，而不是 `Duckov_Data` 或 `Managed` 子目录；设置后需要重新打开 Visual Studio。
+Проверьте, что `DUCKOV_GAME_DIRECTORY` указывает на корневую папку игры, а не на `Duckov_Data` или `Managed`. После изменения переменной перезапустите Visual Studio.
 
 </details>
 
 <details>
-<summary><strong>如何确认环境变量已经生效</strong></summary>
+<summary><strong>Как проверить, что переменная окружения задана</strong></summary>
 
-在新的命令提示符窗口中执行：
+В новом окне командной строки выполните:
 
 ```bat
 echo %DUCKOV_GAME_DIRECTORY%
@@ -129,53 +155,53 @@ echo %DUCKOV_GAME_DIRECTORY%
 </details>
 
 <details>
-<summary><strong>游戏路径中包含空格或括号</strong></summary>
+<summary><strong>В пути к игре есть пробелы или скобки</strong></summary>
 
-配置脚本支持包含空格和括号的路径，例如 `Program Files (x86)`，直接输入完整路径即可。
+Скрипт настройки поддерживает пути с пробелами и скобками, например `Program Files (x86)`. Просто введите полный путь.
 
 </details>
 
-## 🤝 参与与反馈
+## 🤝 Участие и обратная связь
 
-欢迎通过 [Issues](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/issues) 报告问题，或在 [Discussions](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/discussions) 中交流建议。
+Ошибки оригинального мода можно сообщать в [Issues](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/issues), а идеи обсуждать в [Discussions](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview/discussions) оригинального репозитория. Если ошибка возникает только в этой сборке, не отправляйте её авторам оригинала.
 
-提交问题时，建议附上以下信息：
+К сообщению об ошибке желательно приложить:
 
-- 模组版本与游戏版本
-- 主机或客户端身份
-- 问题复现步骤
-- 相关日志、截图或视频
+- версию мода и версию игры;
+- кто вы в сессии — хост или клиент;
+- шаги, после которых возникает проблема;
+- логи, скриншоты или видео.
 
-## 💡 致谢
+## 💡 Благодарности
 
-特别感谢以下开发者和测试者对项目的支持：
+Авторы оригинального мода — **Mr.sans & InitLoader's team**. Отдельная благодарность за поддержку проекта:
 
-- **Neko17** — 核心开发
-- **Prototype-alpha** — 功能开发与优化
-- **所有参与调试与联机测试的朋友们**
+- **Neko17** — основная разработка
+- **Prototype-alpha** — разработка и оптимизация функций
+- **всем, кто помогал с отладкой и тестами по сети**
 
-本项目使用了以下开源项目：
+В проекте используются открытые библиотеки:
 
-- [HarmonyLib](https://github.com/pardeike/Harmony) — 运行时代码修改框架
-- [LiteNetLib](https://github.com/RevenantX/LiteNetLib) — UDP 网络库
+- [HarmonyLib](https://github.com/pardeike/Harmony) — библиотека для изменения кода во время выполнения
+- [LiteNetLib](https://github.com/RevenantX/LiteNetLib) — сетевая библиотека на UDP
 
-## 📄 许可证
+## 📄 Лицензия
 
-本项目使用基于 **AGPL-3.0 修改的协议**发布。使用或分发衍生作品前，请完整阅读许可证文件：
+Проект распространяется по лицензии на основе **AGPL-3.0 с дополнительными ограничениями**. Прежде чем использовать или распространять производные работы, полностью прочитайте файлы лицензии:
 
-- [LICENSE.txt](LICENSE.txt) — 完整许可证文本
-- [LICENSE_RESTRICTIONS.txt](LICENSE_RESTRICTIONS.txt) — 额外限制说明
+- [LICENSE.txt](LICENSE.txt) — полный текст лицензии
+- [LICENSE_RESTRICTIONS.txt](LICENSE_RESTRICTIONS.txt) — дополнительные ограничения
 
-主要要求包括：
+Основные требования:
 
-- ❌ 禁止商业用途
-- ❌ 禁止私有服务器闭源使用
-- ✅ 必须署名原作者
+- ❌ запрещено коммерческое использование
+- ❌ запрещено использовать для запуска выделенного (headless) игрового сервера
+- ✅ обязательно указывать авторов оригинала
 
 ---
 
 <div align="center">
 
-**如果这个项目对你有帮助，欢迎点亮一个 ⭐ Star。**
+**Если проект вам пригодился, поставьте ⭐ оригинальному [репозиторию](https://github.com/Mr-sans-and-InitLoader-s-team/Escape-From-Duckov-Coop-Mod-Preview).**
 
 </div>

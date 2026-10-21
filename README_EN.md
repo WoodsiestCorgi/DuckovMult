@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Modified%20AGPL--3.0-blue.svg)](LICENSE.txt)
 [![Steam Workshop](https://img.shields.io/badge/Steam-Workshop-blue.svg)](https://steamcommunity.com/sharedfiles/filedetails/?id=3591341282)
 
-English | **[简体中文](README.md)**
+**[Русский](README.md)** | English | **[简体中文](README_ZH.md)**
 
 ---
 
