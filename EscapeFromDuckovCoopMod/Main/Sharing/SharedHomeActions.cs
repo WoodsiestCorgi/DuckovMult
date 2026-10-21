@@ -82,7 +82,11 @@ internal static class SharedHomeActions
                 var area = (string)args["area"];
                 var building = (string)args["building"];
                 var x = (int)args["x"]; var y = (int)args["y"]; var rotation = (int)args["rotation"];
-                if (SharedHomeBuildings.ValidPlacement(area, building, x, y, rotation))
+                // [max] Quests the guest finished in their own save also unlock buildings.
+                var guestQuests = args["personalQuests"] is JArray quests
+                    ? new HashSet<int>(quests.Select(q => (int)q))
+                    : null;
+                if (SharedHomeBuildings.ValidPlacement(area, building, x, y, rotation, guestQuests))
                     AccessTools.Method(typeof(BuildingManager), "BuyAndPlace").Invoke(null,
                         new object[] { area, building, new Vector2Int(x, y), (BuildingRotation)rotation });
                 break;

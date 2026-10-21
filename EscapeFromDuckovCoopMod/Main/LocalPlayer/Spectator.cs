@@ -202,6 +202,19 @@ public class Spectator : MonoBehaviour
         return false;
     }
 
+    // [max] While spectating, AI culling must follow the watched player, not the local corpse.
+    public bool TryGetSpectateAnchor(out Vector3 position)
+    {
+        position = default;
+        if (!_spectatorActive || _spectateIdx < 0 || _spectateIdx >= _spectateList.Count) return false;
+
+        var target = _spectateList[_spectateIdx];
+        if (!target) return false;
+
+        position = target.transform.position;
+        return true;
+    }
+
     public void SpectateNext()
     {
         if (_spectateList.Count == 0) return;

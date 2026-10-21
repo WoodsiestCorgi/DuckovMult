@@ -120,6 +120,7 @@ public class Weather
         DeadLootBox.Instance?.Server_ReplayToPeer(context.Sender);
         SendDoorSnapshot(context.Sender);
         LevelDataBoolNet.Server_SendCostTakerSnapshot(context.Sender);
+        LootSearchedSync.Server_ReplayToPeer(context.Sender); // [max]
         SendDestructibleSnapshot(context.Sender);
         SendExplosiveBarrelSnapshot(context.Sender);
     }

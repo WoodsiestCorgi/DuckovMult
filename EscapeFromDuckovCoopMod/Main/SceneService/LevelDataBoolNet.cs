@@ -128,7 +128,7 @@ public static class LevelDataBoolNet
 
     public static void Server_SendCostTakerSnapshot(NetPeer target)
     {
-        if (target == null || PaidCostTakerStates.Count == 0)
+        if (target == null)
             return;
 
         var sceneId = GetCurrentSceneId();
@@ -148,11 +148,39 @@ public static class LevelDataBoolNet
 
             CoopTool.SendRpcTo(target, in rpc);
         }
+
+        // [max] Also replay construction sites the host built in earlier sessions.
+        List<CostTaker> builtSites;
+        try
+        {
+            builtSites = ConstructionSiteReplay.CollectBuiltSiteCostTakers();
+        }
+        catch
+        {
+            return;
+        }
+
+        foreach (var costTaker in builtSites)
+        {
+            if (!TryGetInteractableKey(costTaker, out var keyHash) || keyHash == 0 || PaidCostTakerStates.ContainsKey(keyHash))
+                continue;
+
+            var rpc = new EnvLevelDataBoolRpc
+            {
+                KeyHash = keyHash,
+                Value = true,
+                CostTakerPaid = true,
+                CostMoney = costTaker.Cost.money,
+                SceneId = sceneId
+            };
+
+            CoopTool.SendRpcTo(target, in rpc);
+        }
     }
 
     public static void BeginCostTakerPayment(CostTaker costTaker)
     {
-        if (HasPerPlayerItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
+        if (IsExcludedItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
         {
             _activeCostTakerPayment = null;
             _activeCostTakerPaySucceeded = false;
@@ -191,7 +219,7 @@ public static class LevelDataBoolNet
         if (!costTaker)
             return;
 
-        if (HasPerPlayerItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
+        if (IsExcludedItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
             return;
 
         if (!TryGetInteractableKey(costTaker, out var keyHash) || keyHash == 0)
@@ -212,7 +240,7 @@ public static class LevelDataBoolNet
         if (_applyingRemoteCostTaker || mod == null || costTaker == null || !mod.networkStarted)
             return;
 
-        if (HasPerPlayerItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
+        if (IsExcludedItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
             return;
 
         if (costTaker.Cost.IsFree && !ConstructionSiteReplay.IsFreeConstructionCost(costTaker))
@@ -444,7 +472,7 @@ public static class LevelDataBoolNet
             if (!costTaker)
                 continue;
 
-            if (HasPerPlayerItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
+            if (IsExcludedItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
                 continue;
 
             if (!CostMoneyMatches(costTaker, costMoney))
@@ -501,7 +529,7 @@ public static class LevelDataBoolNet
         if (!costTaker)
             return;
 
-        if (HasPerPlayerItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
+        if (IsExcludedItemCost(costTaker) || IsLotteryBoxCostTaker(costTaker))
             return;
 
         try
@@ -788,6 +816,12 @@ public static class LevelDataBoolNet
     private static bool IsLotteryBoxCostTaker(CostTaker costTaker)
     {
         return costTaker && LotteryBoxNet.IsPaymentGate(costTaker);
+    }
+
+    // [max] Item costs stay per player, except construction sites (bridges): those are built for everyone.
+    private static bool IsExcludedItemCost(CostTaker costTaker)
+    {
+        return HasPerPlayerItemCost(costTaker) && !ConstructionSiteReplay.IsConstructionSite(costTaker);
     }
 
     private static bool HasPerPlayerItemCost(CostTaker costTaker)

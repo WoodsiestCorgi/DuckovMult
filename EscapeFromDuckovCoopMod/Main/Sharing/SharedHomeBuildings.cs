@@ -1,3 +1,4 @@
+using System.Reflection;
 using Duckov.Buildings;
 using Object = UnityEngine.Object;
 
@@ -5,19 +6,51 @@ namespace EscapeFromDuckovCoopMod;
 
 internal static class SharedHomeBuildings
 {
+    private static readonly MethodInfo IsQuestFinishedMethod = AccessTools.Method(typeof(Duckov.Quests.QuestManager), "IsQuestFinished");
+
     internal static void Init() => BuildingManager.OnBuildingListChanged += SharedHome.MarkDirty;
-    internal static bool ValidPlacement(string areaId, string buildingId, int x, int y, int rotation)
+    internal static bool ValidPlacement(string areaId, string buildingId, int x, int y, int rotation, ICollection<int> guestQuests = null)
     {
         if (rotation < 0 || rotation > 3 || !BuildingManager.Instance) return false;
         var info = BuildingManager.GetBuildingInfo(buildingId);
         if (!info.Valid) return false;
-        if (!(bool)AccessTools.Method(typeof(BuildingInfo), "RequirementsSatisfied").Invoke(info, null)) return false;
+        // [max] A guest may also place buildings unlocked by quests finished in their own save.
+        if (!(bool)AccessTools.Method(typeof(BuildingInfo), "RequirementsSatisfied").Invoke(info, null) &&
+            !SatisfiedWith(info, guestQuests)) return false;
         var area = UnityEngine.Object.FindObjectsByType<BuildingArea>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
             .FirstOrDefault(a => a.AreaID == areaId);
         var point = new Vector2Int(x, y);
         return area && area.IsPlacementWithinRange(info.Dimensions, (BuildingRotation)rotation, point) &&
             !area.AreaData.Collide(info.Dimensions, (BuildingRotation)rotation, point);
     }
+    // [max] Same rule as BuildingInfo.RequirementsSatisfied, but a quest also counts when it is in extraQuests.
+    internal static bool SatisfiedWith(BuildingInfo info, ICollection<int> extraQuests)
+    {
+        if (extraQuests == null || extraQuests.Count == 0) return false;
+
+        if (info.requireBuildings != null)
+            foreach (var building in info.requireBuildings)
+                if (!BuildingManager.Any(building)) return false;
+
+        if (info.requireQuests != null)
+            foreach (var quest in info.requireQuests)
+                if (!extraQuests.Contains(quest) && !IsQuestFinished(quest)) return false;
+
+        return true;
+    }
+
+    private static bool IsQuestFinished(int id)
+    {
+        try
+        {
+            return IsQuestFinishedMethod != null && (bool)IsQuestFinishedMethod.Invoke(null, new object[] { id });
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     internal static void ApplyLayout()
     {
         if (!BuildingManager.Instance) return;

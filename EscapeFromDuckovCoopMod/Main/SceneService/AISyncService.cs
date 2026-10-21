@@ -1799,6 +1799,17 @@ public sealed partial class AISyncService
         _clientAnchor = Vector3.zero;
         _clientAnchorValid = false;
         anchor = Vector3.zero;
+
+        // [max] Dead and spectating: keep AI around the watched teammate instead of the corpse.
+        var spectator = Spectator.Instance;
+        if (spectator != null && spectator.TryGetSpectateAnchor(out var spectateAnchor))
+        {
+            _clientAnchor = spectateAnchor;
+            _clientAnchorValid = true;
+            anchor = _clientAnchor;
+            return true;
+        }
+
         var service = Service;
         var localStatus = service?.localPlayerStatus;
         if (localStatus == null || !localStatus.IsInGame)
@@ -1960,7 +1971,47 @@ public sealed partial class AISyncService
             return false;
 
         var distSqr = (status.Position - anchor).sqrMagnitude;
-        return distSqr <= range * range;
+        if (distSqr <= range * range)
+            return true;
+
+        // [max] A dead peer spectates a teammate, so it needs AI near any living player.
+        return IsPeerSpectating(service, peer) && IsAnyLivingPlayerWithinRange(service, peer, anchor, range);
+    }
+
+    // [max] The host destroys a remote player's character on death but keeps the dictionary key.
+    private static bool IsPeerSpectating(NetService service, NetPeer peer)
+    {
+        if (service?.remoteCharacters == null || !service.remoteCharacters.TryGetValue(peer, out var go))
+            return false;
+
+        if (!go)
+            return true;
+
+        var cmc = go.GetComponent<CharacterMainControl>();
+        return !LocalPlayerManager.Instance || !LocalPlayerManager.Instance.IsAlive(cmc);
+    }
+
+    private static bool IsAnyLivingPlayerWithinRange(NetService service, NetPeer exclude, Vector3 anchor, float range)
+    {
+        var rangeSqr = range * range;
+        var lpm = LocalPlayerManager.Instance;
+
+        var host = CharacterMainControl.Main;
+        if (host && lpm && lpm.IsAlive(host) && (host.transform.position - anchor).sqrMagnitude <= rangeSqr)
+            return true;
+
+        foreach (var kv in service.remoteCharacters)
+        {
+            if (kv.Key == null || kv.Key == exclude || !kv.Value) continue;
+
+            var cmc = kv.Value.GetComponent<CharacterMainControl>();
+            if (!cmc || !lpm || !lpm.IsAlive(cmc)) continue;
+
+            if ((cmc.transform.position - anchor).sqrMagnitude <= rangeSqr)
+                return true;
+        }
+
+        return false;
     }
 
     private HashSet<NetPeer> GetServerWatchers(int id)

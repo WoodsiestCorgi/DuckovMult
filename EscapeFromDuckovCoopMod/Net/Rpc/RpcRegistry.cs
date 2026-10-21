@@ -67,6 +67,7 @@ public static class RpcRegistry
         Register<SharedHomeRpc>(SharedHome.Handle);
         Register<LootOpenRequestRpc>(RPCLoot.HandleLootOpenRequest);
         Register<LootStateRpc>(RPCLoot.HandleLootState);
+        Register<LootSearchedRpc>(LootSearchedSync.Handle); // [max]
         Register<LootPutRequestRpc>(RPCLoot.HandleLootPutRequest);
         Register<LootTakeRequestRpc>(RPCLoot.HandleLootTakeRequest);
         Register<LootStackRequestRpc>(RPCLoot.HandleLootSplitRequest);

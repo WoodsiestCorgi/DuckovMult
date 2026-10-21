@@ -191,7 +191,9 @@ internal static class SharedHomeBuildPatch
     private static bool Prefix(string areaID, string id, Vector2Int coord, BuildingRotation rotation, ref BuildingBuyAndPlaceResults __result)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
-        SharedHome.Request("build", new { area = areaID, building = id, x = coord.x, y = coord.y, rotation = (int)rotation });
+        // [max] Send our own finished quests so the host also accepts buildings only we have unlocked.
+        SharedHome.Request("build", new { area = areaID, building = id, x = coord.x, y = coord.y, rotation = (int)rotation,
+            personalQuests = SharedHomeSave.PersonalFinishedQuests() });
         __result = BuildingBuyAndPlaceResults.Succeed;
         return false;
     }

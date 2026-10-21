@@ -73,5 +73,9 @@ internal static class LootboxInteractStopPatch
         catch
         {
         }
+
+        // [max] Tell the other players this container is done.
+        if (fullyInspected)
+            LootSearchedSync.OnLocalSearched(inv);
     }
 }

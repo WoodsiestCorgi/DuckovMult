@@ -273,10 +273,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Polyfill" Version="8.9.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
 

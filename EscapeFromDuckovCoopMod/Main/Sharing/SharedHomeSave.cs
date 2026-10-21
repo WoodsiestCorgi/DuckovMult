@@ -32,6 +32,33 @@ internal static class SharedHomeSave
         key.StartsWith("ConstructionSite_") || key.StartsWith("NoteIndex") || SharedHomeWorld.ValueKey(key);
 
     internal static void ResetPublished() => PublishedValues.Clear();
+
+    // [max] Quests the guest finished in their own save. That save is frozen while the overlay is active.
+    private static int[] _personalFinishedQuests;
+    internal static int[] PersonalFinishedQuests()
+    {
+        if (_personal == null) return Array.Empty<int>();
+        if (_personalFinishedQuests != null) return _personalFinishedQuests;
+
+        var set = new HashSet<int>();
+        try
+        {
+            if (_personal.KeyExists("QuestData") && _personal.Load("QuestData") is Duckov.Quests.QuestManager.SaveData data)
+            {
+                if (data.completedQuests != null) set.UnionWith(data.completedQuests);
+                if (data.historyQuestsData != null)
+                    foreach (var entry in data.historyQuestsData)
+                        if (entry is Duckov.Quests.Quest.SaveData quest) set.Add(quest.id);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SharedHome] Could not read personal quests: " + e.Message);
+        }
+
+        _personalFinishedQuests = set.ToArray();
+        return _personalFinishedQuests;
+    }
     internal static byte[] Capture(bool full = false)
     {
         Capturing = true;
@@ -133,6 +160,7 @@ internal static class SharedHomeSave
         if (_personalGlobal != null) ES3File.cachedFiles[SavesSystem.GlobalSaveDataFilePath] = _personalGlobal;
         _personal = null;
         _personalGlobal = null;
+        _personalFinishedQuests = null; // [max]
         LastValues.Clear();
         SharedHome.Reloading = true;
         var defer = SceneLoader.IsSceneLoading;

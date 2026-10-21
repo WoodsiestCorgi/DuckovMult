@@ -87,6 +87,7 @@ namespace EscapeFromDuckovCoopMod;
     public void Reset()
     {
         CorpseRecovery.ResetNetwork();
+        LootSearchedSync.Reset(); // [max]
         _applyingLootState = false;
         _serverApplyingLoot = false;
         _nextLootToken = 1;
