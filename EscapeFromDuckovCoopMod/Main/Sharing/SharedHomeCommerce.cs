@@ -12,9 +12,12 @@ internal static class SharedHomeCommerce
         await shop.Buy(type, amount);
         SharedHome.MarkDirty();
     }
-    internal static async UniTaskVoid Craft(string id)
+    // [max] guestUnlocked: the guest has this recipe in their own save.
+    internal static async UniTaskVoid Craft(string id, bool guestUnlocked = false)
     {
-        if (!CraftingManager.Instance || !CraftingManager.UnlockedFormulaIDs.Contains(id)) return;
+        if (!CraftingManager.Instance) return;
+        if (!CraftingManager.UnlockedFormulaIDs.Contains(id) &&
+            !(guestUnlocked && CraftingFormulaCollection.TryGetFormula(id, out _))) return;
         await CraftingManager.Instance.Craft(id);
         SharedHome.MarkDirty();
     }

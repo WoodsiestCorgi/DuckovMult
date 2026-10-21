@@ -9,13 +9,17 @@ internal static class SharedHomeBuildings
     private static readonly MethodInfo IsQuestFinishedMethod = AccessTools.Method(typeof(Duckov.Quests.QuestManager), "IsQuestFinished");
 
     internal static void Init() => BuildingManager.OnBuildingListChanged += SharedHome.MarkDirty;
-    internal static bool ValidPlacement(string areaId, string buildingId, int x, int y, int rotation, ICollection<int> guestQuests = null)
+    private static readonly MethodInfo AddTokenMethod = AccessTools.Method(typeof(BuildingManager), "AddToken");
+    private static readonly MethodInfo SetTokenAmountMethod = AccessTools.Method(typeof(BuildingManager), "SetTokenAmount");
+
+    internal static bool ValidPlacement(string areaId, string buildingId, int x, int y, int rotation, ICollection<int> guestQuests = null, bool guestOwnsIt = false)
     {
         if (rotation < 0 || rotation > 3 || !BuildingManager.Instance) return false;
         var info = BuildingManager.GetBuildingInfo(buildingId);
         if (!info.Valid) return false;
-        // [max] A guest may also place buildings unlocked by quests finished in their own save.
-        if (!(bool)AccessTools.Method(typeof(BuildingInfo), "RequirementsSatisfied").Invoke(info, null) &&
+        // [max] A guest may also place buildings unlocked by quests finished in their own save,
+        // and buildings they already own there.
+        if (!guestOwnsIt && !(bool)AccessTools.Method(typeof(BuildingInfo), "RequirementsSatisfied").Invoke(info, null) &&
             !SatisfiedWith(info, guestQuests)) return false;
         var area = UnityEngine.Object.FindObjectsByType<BuildingArea>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
             .FirstOrDefault(a => a.AreaID == areaId);
@@ -23,6 +27,39 @@ internal static class SharedHomeBuildings
         return area && area.IsPlacementWithinRange(info.Dimensions, (BuildingRotation)rotation, point) &&
             !area.AreaData.Collide(info.Dimensions, (BuildingRotation)rotation, point);
     }
+    // [max] Guest side: buildings the guest owns in their own save but the shared home does not have yet.
+    internal static int GuestExtraOwned(string buildingId)
+    {
+        if (!SharedHome.Guest || string.IsNullOrEmpty(buildingId)) return 0;
+        var owned = SharedHomeSave.PersonalOwnedBuildingCount(buildingId);
+        return owned <= 0 ? 0 : Mathf.Max(0, owned - BuildingManager.GetBuildingAmount(buildingId));
+    }
+
+    // [max] Host side: place a building for a guest. When the guest owns more of it than the shared home has,
+    // a free token is granted for this placement only (removed again if the placement fails).
+    internal static void HostPlaceForGuest(string areaId, string buildingId, int x, int y, int rotation, ICollection<int> guestQuests, int guestOwned)
+    {
+        var manager = BuildingManager.Instance;
+        if (!manager) return;
+
+        var guestOwnsIt = guestOwned > BuildingManager.GetBuildingAmount(buildingId);
+        if (!ValidPlacement(areaId, buildingId, x, y, rotation, guestQuests, guestOwnsIt)) return;
+
+        var tokensBefore = manager.GetTokenAmount(buildingId);
+        var grantedToken = false;
+        if (guestOwnsIt && tokensBefore <= 0 && AddTokenMethod != null)
+        {
+            AddTokenMethod.Invoke(manager, new object[] { buildingId, 1 });
+            grantedToken = true;
+        }
+
+        var result = AccessTools.Method(typeof(BuildingManager), "BuyAndPlace").Invoke(null,
+            new object[] { areaId, buildingId, new Vector2Int(x, y), (BuildingRotation)rotation });
+
+        if (grantedToken && !(result is BuildingBuyAndPlaceResults placed && placed == BuildingBuyAndPlaceResults.Succeed))
+            SetTokenAmountMethod?.Invoke(manager, new object[] { buildingId, tokensBefore });
+    }
+
     // [max] Same rule as BuildingInfo.RequirementsSatisfied, but a quest also counts when it is in extraQuests.
     internal static bool SatisfiedWith(BuildingInfo info, ICollection<int> extraQuests)
     {

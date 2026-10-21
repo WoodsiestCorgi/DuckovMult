@@ -80,7 +80,8 @@ internal static class SharedHomeCraftPatch
     private static bool Prefix(string id, ref UniTask<List<Item>> __result)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
-        SharedHome.Request("craft", new { id });
+        // [max] Tell the host when the recipe comes from our own save.
+        SharedHome.Request("craft", new { id, personal = SharedHomeSave.PersonalFormulaUnlocked(id) });
         __result = UniTask.FromResult<List<Item>>(null);
         return false;
     }

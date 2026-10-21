@@ -121,6 +121,7 @@ public class Weather
         SendDoorSnapshot(context.Sender);
         LevelDataBoolNet.Server_SendCostTakerSnapshot(context.Sender);
         LootSearchedSync.Server_ReplayToPeer(context.Sender); // [max]
+        MapMarkerSync.Server_ReplayToPeer(context.Sender); // [max]
         SendDestructibleSnapshot(context.Sender);
         SendExplosiveBarrelSnapshot(context.Sender);
     }

@@ -408,6 +408,9 @@ public sealed class AISyncSettingsUI : MonoBehaviour
         CreateFloatField(network, CoopLocalization.Get("ui.settings.projectileSyncMaxDistance"), () => _workingGeneral.ProjectileSyncMaxDistance, v => _workingGeneral.ProjectileSyncMaxDistance = v, 0f, 500f, true, _defaultGeneral.ProjectileSyncMaxDistance, CoopLocalization.Get("ui.settings.projectileSyncMaxDistance.desc"));
         CreateBoolField(network, CoopLocalization.Get("ui.settings.teleporterSpawnTogether"), () => _workingGeneral.TeleporterSpawnTogether, v => _workingGeneral.TeleporterSpawnTogether = v, true, _defaultGeneral.TeleporterSpawnTogether, CoopLocalization.Get("ui.settings.teleporterSpawnTogether.desc"));
         CreateBoolField(network, CoopLocalization.Get("ui.settings.friendlyFirePlayers"), () => _workingGeneral.FriendlyFirePlayers, v => _workingGeneral.FriendlyFirePlayers = v, true, _defaultGeneral.FriendlyFirePlayers, CoopLocalization.Get("ui.settings.friendlyFirePlayers.desc"));
+        // [max] Per-player options.
+        CreateBoolField(network, CoopLocalization.Get("ui.settings.teamKillCredit"), () => _workingGeneral.TeamQuestKillCredit, v => _workingGeneral.TeamQuestKillCredit = v, false, _defaultGeneral.TeamQuestKillCredit, CoopLocalization.Get("ui.settings.teamKillCredit.desc"));
+        CreatePingKeyField(network);
         CreateThemeModeField(network, CoopLocalization.Get("ui.settings.themeMode"), () => _workingGeneral.UiThemeMode, v => _workingGeneral.UiThemeMode = v, _defaultGeneral.UiThemeMode, CoopLocalization.Get("ui.settings.themeMode.desc"));
 
         var distances = CreateSection(aiSyncContent,
@@ -1460,6 +1463,31 @@ public sealed class AISyncSettingsUI : MonoBehaviour
             setter(resetVal);
             ApplyChanges();
         });
+    }
+
+    // [max] Ping key: the button shows the current key, each click switches to the next choice.
+    private static readonly KeyCode[] PingKeyChoices =
+    {
+        KeyCode.Mouse2, KeyCode.Mouse3, KeyCode.Mouse4, KeyCode.Z, KeyCode.X, KeyCode.C,
+        KeyCode.V, KeyCode.B, KeyCode.T, KeyCode.H, KeyCode.CapsLock, KeyCode.None
+    };
+
+    private void CreatePingKeyField(Transform parent)
+    {
+        var row = CreateFieldRow(parent, CoopLocalization.Get("ui.settings.pingKey"), false, CoopLocalization.Get("ui.settings.pingKey.desc"));
+        TMP_Text label = null;
+        var button = CreateResetButton(row, () =>
+        {
+            var index = Array.IndexOf(PingKeyChoices, _workingGeneral.PingKey);
+            _workingGeneral.PingKey = PingKeyChoices[(index + 1) % PingKeyChoices.Length];
+            if (label) label.text = TeamPings.KeyName(_workingGeneral.PingKey);
+            ApplyChanges();
+        });
+
+        label = button.GetComponentInChildren<TMP_Text>(true);
+        if (label) label.text = TeamPings.KeyName(_workingGeneral.PingKey);
+        var layout = button.GetComponent<LayoutElement>();
+        if (layout) layout.preferredWidth = 170f;
     }
 
     private Button CreateResetButton(Transform parent, System.Action onClick)

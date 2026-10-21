@@ -1443,6 +1443,38 @@
     {
       "key": "ui.coopMode.eyebrow",
       "value": "逃离鸭科夫  /  合作模式"
+    },
+    {
+      "key": "ui.settings.teamKillCredit",
+      "value": "任务击杀共享"
+    },
+    {
+      "key": "ui.settings.teamKillCredit.desc",
+      "value": "队友击杀的敌人也计入你的击杀任务（仍检查敌人类型、武器和爆头条件），不获得经验。仅限独立存档。每位玩家各自设置。"
+    },
+    {
+      "key": "ui.settings.pingKey",
+      "value": "标记按键"
+    },
+    {
+      "key": "ui.settings.pingKey.desc",
+      "value": "在战局中按下，为全队标记准星位置：屏幕和地图上显示 15 秒。点击右侧按钮切换按键。每位玩家各自设置。"
+    },
+    {
+      "key": "ui.ping.label",
+      "value": "{0} · {1} 米"
+    },
+    {
+      "key": "ui.key.mouseMiddle",
+      "value": "鼠标中键"
+    },
+    {
+      "key": "ui.key.mouseSide",
+      "value": "鼠标侧键 {0}"
+    },
+    {
+      "key": "ui.key.none",
+      "value": "关闭"
     }
   ]
 }

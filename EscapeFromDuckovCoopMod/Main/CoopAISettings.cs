@@ -80,6 +80,10 @@ public sealed class CoopGeneralSettings
     public bool FriendlyFirePlayers = false;
     public bool PrivateSharedHome = false;
     public UIThemeMode UiThemeMode = UIThemeMode.White;
+    // [max] Teammates' kills also count for your kill quests (independent saves only). Per player.
+    public bool TeamQuestKillCredit = true;
+    // [max] Key that drops a team ping at the aim point. Per player.
+    public KeyCode PingKey = KeyCode.Mouse2;
 
     public CoopGeneralSettings Clone() => (CoopGeneralSettings)MemberwiseClone();
 

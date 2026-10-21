@@ -59,7 +59,9 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         go.AddComponent<CoopLootSettings>();
         go.AddComponent<WaitingSynchronizationUI>();
         go.AddComponent<VersionOverlayTMP>();
+        go.AddComponent<TeamPings>(); // [max]
         CoopTool.Init();
+        TeamKillCredit.Init(); // [max]
 
         DeferredInit();
     }

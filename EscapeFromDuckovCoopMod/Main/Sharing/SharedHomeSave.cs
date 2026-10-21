@@ -59,6 +59,72 @@ internal static class SharedHomeSave
         _personalFinishedQuests = set.ToArray();
         return _personalFinishedQuests;
     }
+
+    // [max] How many of a building the guest owns in their own save: placed in their bunker plus folded tokens.
+    private static Dictionary<string, int> _personalOwnedBuildings;
+    internal static int PersonalOwnedBuildingCount(string buildingId)
+    {
+        if (_personal == null || string.IsNullOrEmpty(buildingId)) return 0;
+        _personalOwnedBuildings ??= ReadPersonalOwnedBuildings();
+        return _personalOwnedBuildings.TryGetValue(buildingId, out var count) ? count : 0;
+    }
+
+    private static Dictionary<string, int> ReadPersonalOwnedBuildings()
+    {
+        var result = new Dictionary<string, int>();
+        void Add(string id, int amount)
+        {
+            if (string.IsNullOrEmpty(id) || amount <= 0) return;
+            result[id] = (result.TryGetValue(id, out var current) ? current : 0) + amount;
+        }
+
+        try
+        {
+            if (!_personal.KeyExists("BuildingData")) return result;
+            var data = _personal.Load("BuildingData");
+            if (data == null) return result;
+
+            var type = data.GetType();
+            if (AccessTools.Field(type, "data")?.GetValue(data) is IEnumerable<BuildingManager.BuildingAreaData> areas)
+                foreach (var area in areas)
+                    if (area?.Buildings != null)
+                        foreach (var building in area.Buildings)
+                            if (building != null) Add(building.ID, 1);
+
+            if (AccessTools.Field(type, "tokenAmounts")?.GetValue(data) is IEnumerable<BuildingManager.BuildingTokenAmountEntry> tokens)
+                foreach (var token in tokens)
+                    if (token != null) Add(token.id, token.amount);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SharedHome] Could not read personal buildings: " + e.Message);
+        }
+
+        return result;
+    }
+
+    // [max] Crafting recipes the guest unlocked in their own save.
+    private static HashSet<string> _personalFormulas;
+    internal static bool PersonalFormulaUnlocked(string formulaId)
+    {
+        if (_personal == null || string.IsNullOrEmpty(formulaId)) return false;
+        if (_personalFormulas == null)
+        {
+            _personalFormulas = new HashSet<string>();
+            try
+            {
+                if (_personal.KeyExists("Crafting/UnlockedFormulaIDs") &&
+                    _personal.Load("Crafting/UnlockedFormulaIDs") is IEnumerable<string> ids)
+                    _personalFormulas.UnionWith(ids.Where(id => !string.IsNullOrEmpty(id)));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[SharedHome] Could not read personal recipes: " + e.Message);
+            }
+        }
+
+        return _personalFormulas.Contains(formulaId);
+    }
     internal static byte[] Capture(bool full = false)
     {
         Capturing = true;
@@ -161,6 +227,8 @@ internal static class SharedHomeSave
         _personal = null;
         _personalGlobal = null;
         _personalFinishedQuests = null; // [max]
+        _personalOwnedBuildings = null; // [max]
+        _personalFormulas = null; // [max]
         LastValues.Clear();
         SharedHome.Reloading = true;
         var defer = SceneLoader.IsSceneLoading;

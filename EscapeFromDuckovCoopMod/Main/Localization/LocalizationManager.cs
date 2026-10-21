@@ -166,6 +166,15 @@ namespace EscapeFromDuckovCoopMod
             // 기본 영어 번역을 하드코딩으로 제공
             currentTranslations.Clear();
             currentTranslations["ui.window.title"] = "Co-op Mod Control Panel";
+            // [max]
+            currentTranslations["ui.settings.teamKillCredit"] = "Team kill credit for quests";
+            currentTranslations["ui.settings.teamKillCredit.desc"] = "Enemies killed by teammates count toward your kill quests (enemy type, weapon and headshot rules still apply). No XP is granted. Independent saves only. Each player sets this for themselves.";
+            currentTranslations["ui.settings.pingKey"] = "Ping key";
+            currentTranslations["ui.settings.pingKey.desc"] = "Press during a raid to mark the aimed spot for the whole team: a marker on screen and on the map for 15 seconds. The button on the right changes the key. Each player sets this for themselves.";
+            currentTranslations["ui.ping.label"] = "{0} · {1} m";
+            currentTranslations["ui.key.mouseMiddle"] = "Middle mouse";
+            currentTranslations["ui.key.mouseSide"] = "Mouse {0}";
+            currentTranslations["ui.key.none"] = "Off";
             currentTranslations["ui.sharedHome.displayHostOnly"] = "In shared mode, the host edits display contents and guests see the synchronized display. All players can use the common warehouse.";
             currentTranslations["net.sharedHome.entryFailed"] = "Could not load the shared room. Disconnected and restored your personal save. Please check the log.";
             currentTranslations["net.sharedHome.title"] = "Shared mode: connection failed";

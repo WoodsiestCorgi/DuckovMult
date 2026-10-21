@@ -193,7 +193,8 @@ internal static class SharedHomeBuildPatch
         if (!SharedHome.Guest || SharedHome.Applying) return true;
         // [max] Send our own finished quests so the host also accepts buildings only we have unlocked.
         SharedHome.Request("build", new { area = areaID, building = id, x = coord.x, y = coord.y, rotation = (int)rotation,
-            personalQuests = SharedHomeSave.PersonalFinishedQuests() });
+            personalQuests = SharedHomeSave.PersonalFinishedQuests(),
+            personalOwned = SharedHomeSave.PersonalOwnedBuildingCount(id) });
         __result = BuildingBuyAndPlaceResults.Succeed;
         return false;
     }

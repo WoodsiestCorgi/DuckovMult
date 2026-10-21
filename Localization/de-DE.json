@@ -1443,6 +1443,38 @@
     {
       "key": "ui.coopMode.eyebrow",
       "value": "ESCAPE FROM DUCKOV  /  KOOPERATIV"
+    },
+    {
+      "key": "ui.settings.teamKillCredit",
+      "value": "Gemeinsame Kills für Aufträge"
+    },
+    {
+      "key": "ui.settings.teamKillCredit.desc",
+      "value": "Von Teammitgliedern getötete Gegner zählen für deine Tötungsaufträge (Gegnertyp, Waffe und Kopfschuss werden geprüft). Keine Erfahrung. Nur bei getrennten Spielständen. Jeder Spieler stellt das selbst ein."
+    },
+    {
+      "key": "ui.settings.pingKey",
+      "value": "Markierungstaste"
+    },
+    {
+      "key": "ui.settings.pingKey.desc",
+      "value": "Drücke im Einsatz, um die anvisierte Stelle für das ganze Team zu markieren: Markierung auf dem Bildschirm und auf der Karte für 15 Sekunden. Die Schaltfläche rechts ändert die Taste. Jeder Spieler stellt das selbst ein."
+    },
+    {
+      "key": "ui.ping.label",
+      "value": "{0} · {1} m"
+    },
+    {
+      "key": "ui.key.mouseMiddle",
+      "value": "Mittlere Maustaste"
+    },
+    {
+      "key": "ui.key.mouseSide",
+      "value": "Maus {0}"
+    },
+    {
+      "key": "ui.key.none",
+      "value": "Aus"
     }
   ]
 }

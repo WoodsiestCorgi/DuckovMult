@@ -23,7 +23,7 @@ internal static class SharedHomeActions
             case "storageBufferPut": SharedHomeStorage.PutBuffer(args, sender).Forget(); break;
             case "worldFlag": SharedHomeWorld.SetFlag((string)args["key"], (bool)args["value"]); break;
             case "count": SavesCounter.AddCount((string)args["key"]); break;
-            case "craft": SharedHomeCommerce.Craft((string)args["id"]).Forget(); break;
+            case "craft": SharedHomeCommerce.Craft((string)args["id"], (bool?)args["personal"] == true).Forget(); break; // [max]
             case "shopBuy": SharedHomeCommerce.Buy((string)args["merchant"], (int)args["type"], (int)args["amount"]).Forget(); break;
             case "unlock": SharedHomeUnlocks.Execute(args); break;
             case "xp":
@@ -86,9 +86,9 @@ internal static class SharedHomeActions
                 var guestQuests = args["personalQuests"] is JArray quests
                     ? new HashSet<int>(quests.Select(q => (int)q))
                     : null;
-                if (SharedHomeBuildings.ValidPlacement(area, building, x, y, rotation, guestQuests))
-                    AccessTools.Method(typeof(BuildingManager), "BuyAndPlace").Invoke(null,
-                        new object[] { area, building, new Vector2Int(x, y), (BuildingRotation)rotation });
+                // [max] How many of this building the guest owns in their own save.
+                var guestOwned = (int?)args["personalOwned"] ?? 0;
+                SharedHomeBuildings.HostPlaceForGuest(area, building, x, y, rotation, guestQuests, guestOwned);
                 break;
             case "returnBuilding":
                 ReturnBuilding((int)args["guid"], (string)args["area"]).Forget();

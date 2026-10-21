@@ -1443,6 +1443,38 @@
     {
       "key": "ui.coopMode.eyebrow",
       "value": "ESCAPE FROM DUCKOV  /  협동 플레이"
+    },
+    {
+      "key": "ui.settings.teamKillCredit",
+      "value": "퀘스트 처치 공유"
+    },
+    {
+      "key": "ui.settings.teamKillCredit.desc",
+      "value": "팀원이 처치한 적도 내 처치 퀘스트에 집계됩니다(적 종류, 무기, 헤드샷 조건은 적용). 경험치는 없습니다. 개별 저장에서만 작동하며 플레이어마다 따로 설정합니다."
+    },
+    {
+      "key": "ui.settings.pingKey",
+      "value": "핑 키"
+    },
+    {
+      "key": "ui.settings.pingKey.desc",
+      "value": "레이드 중 누르면 조준 지점을 팀 전체에 표시합니다: 화면과 지도에 15초간 표시. 오른쪽 버튼으로 키를 바꿉니다. 플레이어마다 따로 설정합니다."
+    },
+    {
+      "key": "ui.ping.label",
+      "value": "{0} · {1}m"
+    },
+    {
+      "key": "ui.key.mouseMiddle",
+      "value": "마우스 휠 버튼"
+    },
+    {
+      "key": "ui.key.mouseSide",
+      "value": "마우스 {0}"
+    },
+    {
+      "key": "ui.key.none",
+      "value": "끔"
     }
   ]
 }

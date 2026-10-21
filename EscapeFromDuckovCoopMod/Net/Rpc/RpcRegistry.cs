@@ -68,6 +68,9 @@ public static class RpcRegistry
         Register<LootOpenRequestRpc>(RPCLoot.HandleLootOpenRequest);
         Register<LootStateRpc>(RPCLoot.HandleLootState);
         Register<LootSearchedRpc>(LootSearchedSync.Handle); // [max]
+        Register<TeamKillCreditRpc>(TeamKillCredit.Handle); // [max]
+        Register<TeamPingRpc>(TeamPings.Handle); // [max]
+        Register<MapMarkerRpc>(MapMarkerSync.Handle); // [max]
         Register<LootPutRequestRpc>(RPCLoot.HandleLootPutRequest);
         Register<LootTakeRequestRpc>(RPCLoot.HandleLootTakeRequest);
         Register<LootStackRequestRpc>(RPCLoot.HandleLootSplitRequest);

@@ -1443,6 +1443,38 @@
     {
       "key": "ui.coopMode.eyebrow",
       "value": "ESCAPE FROM DUCKOV  /  COOPERATIVO"
+    },
+    {
+      "key": "ui.settings.teamKillCredit",
+      "value": "Abates compartilhados nas missões"
+    },
+    {
+      "key": "ui.settings.teamKillCredit.desc",
+      "value": "Inimigos abatidos por aliados contam para suas missões de abate (tipo de inimigo, arma e tiro na cabeça ainda valem). Não concede XP. Apenas com saves separados. Cada jogador ajusta para si."
+    },
+    {
+      "key": "ui.settings.pingKey",
+      "value": "Tecla de marcação"
+    },
+    {
+      "key": "ui.settings.pingKey.desc",
+      "value": "Pressione durante a incursão para marcar o ponto mirado para toda a equipe: marcador na tela e no mapa por 15 segundos. O botão à direita troca a tecla. Cada jogador ajusta para si."
+    },
+    {
+      "key": "ui.ping.label",
+      "value": "{0} · {1} m"
+    },
+    {
+      "key": "ui.key.mouseMiddle",
+      "value": "Botão do meio"
+    },
+    {
+      "key": "ui.key.mouseSide",
+      "value": "Mouse {0}"
+    },
+    {
+      "key": "ui.key.none",
+      "value": "Desligado"
     }
   ]
 }

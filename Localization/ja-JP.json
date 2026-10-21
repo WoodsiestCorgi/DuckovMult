@@ -1443,6 +1443,38 @@
     {
       "key": "ui.coopMode.eyebrow",
       "value": "ESCAPE FROM DUCKOV  /  協力プレイ"
+    },
+    {
+      "key": "ui.settings.teamKillCredit",
+      "value": "クエストのキルを共有"
+    },
+    {
+      "key": "ui.settings.teamKillCredit.desc",
+      "value": "味方が倒した敵もあなたの討伐クエストにカウントされます（敵の種類・武器・ヘッドショットの条件は適用）。経験値は得られません。個別セーブのみ。各プレイヤーが個別に設定します。"
+    },
+    {
+      "key": "ui.settings.pingKey",
+      "value": "ピンのキー"
+    },
+    {
+      "key": "ui.settings.pingKey.desc",
+      "value": "レイド中に押すと照準位置をチーム全員にマーク：画面とマップに15秒表示。右のボタンでキーを変更。各プレイヤーが個別に設定します。"
+    },
+    {
+      "key": "ui.ping.label",
+      "value": "{0} · {1} m"
+    },
+    {
+      "key": "ui.key.mouseMiddle",
+      "value": "マウス中ボタン"
+    },
+    {
+      "key": "ui.key.mouseSide",
+      "value": "マウス {0}"
+    },
+    {
+      "key": "ui.key.none",
+      "value": "オフ"
     }
   ]
 }
