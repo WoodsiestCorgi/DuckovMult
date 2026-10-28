@@ -72,6 +72,7 @@ public sealed class AISyncRegistry
     public AISyncEntry RegisterController(AICharacterController controller)
     {
         if (!controller) return null;
+        if (_byController.TryGetValue(controller, out var registered) && registered != null) return registered;
 
         var id = ComputeStableId(controller);
         if (id == 0)
@@ -80,7 +81,7 @@ public sealed class AISyncRegistry
         // If another controller already claimed this stable id (e.g., two nearly identical AI spawned together),
         // salt the id with the unique instance id so both replicas keep distinct sync keys instead of masking
         // each other on the client.
-        if (_entries.TryGetValue(id, out var existing) && existing?.Controller != null && existing.Controller != controller)
+        if (_entries.TryGetValue(id, out var existing) && !ReferenceEquals(existing?.Controller, controller))
         {
             unchecked
             {
@@ -88,7 +89,7 @@ public sealed class AISyncRegistry
                 if (salted == 0)
                     salted = controller.GetInstanceID();
 
-                while (_entries.TryGetValue(salted, out var collision) && collision?.Controller != controller)
+                while (_entries.ContainsKey(salted))
                     salted++;
 
                 id = salted;
@@ -333,7 +334,10 @@ public sealed class LootSyncRegistry
     public void Register(InteractableLootbox lootbox, Inventory inventory, int lootUid = -1)
     {
         if (!inventory) return;
-        if (LootboxDetectUtil.IsPrivateInventory(inventory)) return;
+        PersonalFormulaLoot.Observe(lootbox, inventory);
+        PersonalStarterLoot.Observe(lootbox, inventory);
+        var formulaBox = PersonalFormulaLoot.IsFormulaBox(inventory);
+        if (LootboxDetectUtil.IsPrivateInventory(inventory) && !formulaBox && !PersonalStarterLoot.IsSupply(inventory)) return;
 
         var instanceId = lootbox ? lootbox.GetInstanceID() : 0;
         var posKey = 0;
@@ -364,7 +368,7 @@ public sealed class LootSyncRegistry
         entry.InstanceId = instanceId;
         entry.SceneIndex = sceneIndex;
         entry.WorldPosition = worldPos;
-        entry.IsWorldLoot = !LootboxDetectUtil.IsPrivateInventory(inventory);
+        entry.IsWorldLoot = formulaBox || !LootboxDetectUtil.IsPrivateInventory(inventory);
 
         if (lootUid >= 0) entry.LootUid = lootUid;
 

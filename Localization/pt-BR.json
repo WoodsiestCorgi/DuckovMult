@@ -1445,6 +1445,10 @@
       "value": "ESCAPE FROM DUCKOV  /  COOPERATIVO"
     },
     {
+      "key": "ui.sharedHome.consoleHostOnly",
+      "value": "No modo compartilhado, o anfitrião instala os equipamentos do console. Todos podem jogar os jogos instalados."
+    },
+    {
       "key": "ui.settings.teamKillCredit",
       "value": "Abates compartilhados nas missões"
     },

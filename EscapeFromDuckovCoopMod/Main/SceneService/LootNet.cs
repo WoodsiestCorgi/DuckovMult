@@ -42,7 +42,25 @@ namespace EscapeFromDuckovCoopMod;
     private readonly HashSet<Inventory> _cliInitializedLoot = new(new InventoryRefEq());
 
     internal bool Client_WaitingForLootState(Inventory inv) => !IsServer && networkStarted && inv &&
-        !_cliInitializedLoot.Contains(inv) && LootSearchWorldGate.IsWorldLootByInventory(inv);
+        !LootboxDetectUtil.IsPrivateInventory(inv) && !_cliInitializedLoot.Contains(inv) && LootSearchWorldGate.IsWorldLootByInventory(inv);
+
+    internal void Client_PrepareLootOpen(Inventory inv)
+    {
+        if (!Client_WaitingForLootState(inv)) return;
+        var applying = _applyingLootState;
+        _applyingLootState = true;
+        try
+        {
+            foreach (var item in inv.ToArray())
+            {
+                // Personal quest items are intentionally excluded from host snapshots.
+                if (!item || IsQuestTagged(item, inv)) continue;
+                item.Detach();
+                item.DestroyTree();
+            }
+        }
+        finally { _applyingLootState = applying; }
+    }
 
     private sealed class InventoryRefEq : IEqualityComparer<Inventory>
     {
@@ -156,10 +174,12 @@ namespace EscapeFromDuckovCoopMod;
                 itemSnapshots.Add(snapshot);
             }
             var recordId = reader.AvailableBytes > 0 ? reader.GetString() : string.Empty;
-            if (reader.AvailableBytes != 0) return;
+            var identity = reader.AvailableBytes > 0 ? reader.GetString() : Service.GetPlayerId(sender);
+            if (reader.AvailableBytes != 0 || identity.Length > 128 ||
+                sender.SteamId != 0 && identity != sender.SteamId.ToString()) return;
             // Consume before entering the asynchronous item creation path.
             if (!HealthM.Instance.Server_ConsumeDeathLoot(sender, lifeId)) return;
-            Server_SpawnDeadPlayerLoot(pos, itemSnapshots, sender, recordId);
+            Server_SpawnDeadPlayerLoot(pos, itemSnapshots, sender, recordId, identity);
         }
         catch (Exception ex)
         {
@@ -167,7 +187,7 @@ namespace EscapeFromDuckovCoopMod;
         }
     }
 
-    private async void Server_SpawnDeadPlayerLoot(Vector3 position, List<ItemSnapshot> itemSnapshots, NetPeer owner, string recordId)
+    private async void Server_SpawnDeadPlayerLoot(Vector3 position, List<ItemSnapshot> itemSnapshots, NetPeer owner, string recordId, string identity)
     {
         try
         {            
@@ -183,6 +203,7 @@ namespace EscapeFromDuckovCoopMod;
             var lootObj = GameObject.Instantiate(prefab.gameObject, position, Quaternion.identity);
             lootObj.SetActive(false);
             var scene = SceneManager.GetActiveScene();
+            Duckov.Scenes.MultiSceneCore.MoveToActiveWithScene(lootObj, scene.buildIndex);
 
             var lootBox = lootObj.GetComponent<InteractableLootbox>();
             if (!lootBox)
@@ -192,6 +213,7 @@ namespace EscapeFromDuckovCoopMod;
                 return;
             }
             
+            AccessTools.Method(typeof(InteractableLootbox), "CreateLocalInventory").Invoke(lootBox, null);
             var inventory = lootBox.Inventory;
             if (!inventory)
             {
@@ -253,7 +275,7 @@ namespace EscapeFromDuckovCoopMod;
             
             Debug.Log($"[DEATH] Loot container spawned successfully!");
             DeadLootBox.Instance?.Server_OnDeadLootboxSpawned(lootBox, null, true, Service.GetPlayerId(owner));
-            CorpseRecovery.RegisterServerBody(lootBox, owner, recordId);
+            CorpseRecovery.RegisterServerBody(lootBox, owner, recordId, identity);
             lootObj.SetActive(true);
             
         }
@@ -371,8 +393,7 @@ namespace EscapeFromDuckovCoopMod;
 
         if (need && !inspected)
         {
-            // 保留已经鉴定过的物品，未鉴定的保持迷雾，只是停止检查动画
-            item.Inspecting = false;
+            // 保留本地搜索状态，容器同步不应中断正在搜索的同一件物品。
             if (inspectedLocally.HasValue) item.Inspected = inspectedLocally.Value;
         }
         else
@@ -422,6 +443,7 @@ namespace EscapeFromDuckovCoopMod;
     public void Server_SendLootboxState(NetPeer toPeer, Inventory inv)
     {
         if (!IsServer || toPeer == null || inv == null) return;
+        if (PersonalFormulaLoot.IsPersonal(inv) || PersonalStarterLoot.IsPersonal(inv)) return;
         var lm = LootManagerInstance;
         if (lm == null) return;
 
@@ -630,6 +652,14 @@ namespace EscapeFromDuckovCoopMod;
     {
         if (!inv) return;
 
+        if (SharedHomeStorage.IsShared(inv))
+        {
+            inv.NeedInspection = false;
+            var box = PlayerStorage.Instance.InteractableLootBox;
+            if (box) box.needInspect = false;
+            return;
+        }
+
         if (!LootSearchWorldGate.IsWorldLootByInventory(inv))
             return;
 
@@ -693,7 +723,7 @@ namespace EscapeFromDuckovCoopMod;
         if (IsServer || lm == null) return;
 
         var inv = lm.ResolveLootInv(rpc.Id.Scene, rpc.Id.PositionKey, rpc.Id.InstanceId, rpc.Id.LootUid);
-        if (!inv) return;
+        if (!inv || LootboxDetectUtil.IsPrivateInventory(inv)) return;
 
         Client_ForceSearchMode(inv);
 
@@ -704,7 +734,7 @@ namespace EscapeFromDuckovCoopMod;
             return;
         }
 
-        _cliVersions[inv] = Mathf.Max(rpc.Version, curVersion);
+        _cliVersions[inv] = rpc.IsSnapshot ? rpc.Version : Mathf.Max(rpc.Version, curVersion);
 
         _applyingLootState = true;
         try
@@ -1036,6 +1066,7 @@ namespace EscapeFromDuckovCoopMod;
     {
         var lm = LootManagerInstance;
         if (!IsServer || inv == null || lm == null) return;
+        if (PersonalFormulaLoot.IsPersonal(inv) || PersonalStarterLoot.IsPersonal(inv)) return;
         CorpseRecovery.QueueSnapshot(inv);
 
         Item item = null;
@@ -1267,6 +1298,8 @@ namespace EscapeFromDuckovCoopMod;
             var key = keys[i];
             var active = states[i];
             if (key == 0) continue;
+            if (CoopSyncDatabase.Loot.TryGetByPositionKey(key, out var personal) &&
+                LootboxDetectUtil.IsPrivateInventory(personal.Inventory)) continue;
 
             _cliLootVisibility[key] = active;
 

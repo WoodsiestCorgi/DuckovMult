@@ -1445,6 +1445,10 @@
       "value": "ESCAPE FROM DUCKOV  /  КООПЕРАТИВ"
     },
     {
+      "key": "ui.sharedHome.consoleHostOnly",
+      "value": "В общем режиме оборудование консоли устанавливает хост. В установленные игры могут играть все игроки."
+    },
+    {
       "key": "ui.settings.teamKillCredit",
       "value": "Общий зачёт убийств для заданий"
     },

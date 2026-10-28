@@ -18,6 +18,8 @@ internal static class SharedHomeStorage
         internal bool Use;
         internal int Position;
         internal UniTaskCompletionSource<Item> Split;
+        internal UniTaskCompletionSource<bool> Purchase;
+        internal Duckov.Economy.StockShop Shop;
     }
     private static readonly Dictionary<string, Destination> Pending = new();
     private static readonly Dictionary<string, (NetPeer Peer, Item Item)> Escrow = new();
@@ -76,7 +78,11 @@ internal static class SharedHomeStorage
         foreach (var entry in Escrow.Values)
             if (entry.Item && PlayerStorage.Inventory) PlayerStorage.Push(entry.Item);
         Escrow.Clear();
-        foreach (var pending in Pending.Values) pending.Split?.TrySetResult(null);
+        foreach (var pending in Pending.Values)
+        {
+            pending.Split?.TrySetResult(null);
+            pending.Purchase?.TrySetResult(false);
+        }
         Pending.Clear();
         SharedHomeStorageOperations.Reset();
         if (_recovered) SaveEscrow();
@@ -151,8 +157,10 @@ internal static class SharedHomeStorage
         var accepted = reader.GetBool();
         if (!Pending.TryGetValue(token, out var destination)) return;
         Pending.Remove(token);
-        if (!accepted) { destination.Split?.TrySetResult(null); return; }
+        if (!accepted) { destination.Split?.TrySetResult(null); destination.Purchase?.TrySetResult(false); return; }
         var item = ItemTool.BuildItemFromSnapshot(ItemTool.ReadItemSnapshot(reader));
+        var displayName = item.DisplayName;
+        if (destination.Purchase != null) item.Inspected = true;
         var stored = false;
         SharedHome.Apply(() =>
         {
@@ -170,7 +178,7 @@ internal static class SharedHomeStorage
                 stored = destination.Inventory.AddAt(item, destination.Position);
             if (!stored && destination.Inventory && destination.Position < 0 && CanReceive(destination.Inventory, item))
                 stored = ItemUtilities.AddAndMerge(destination.Inventory, item);
-            if (!stored && (CanReceive(CharacterMainControl.Main.CharacterItem.Inventory, item) ||
+            if (destination.Purchase == null && !stored && (CanReceive(CharacterMainControl.Main.CharacterItem.Inventory, item) ||
                 CharacterMainControl.Main.CharacterItem.Slots.Any(s => s.Content == null && s.CanPlug(item))))
                 stored = ItemUtilities.SendToPlayerCharacter(item);
             if (stored && destination.Use && item) CharacterMainControl.Main.UseItem(item);
@@ -178,6 +186,40 @@ internal static class SharedHomeStorage
         if (!stored && item) item.DestroyTree();
         SharedHomeLoadouts.Flush();
         SharedHome.Request("storageTaken", new { token, stored });
+        if (destination.Purchase != null)
+        {
+            try { SharedHomeShopPurchase.Received(destination.Shop, item, displayName); }
+            finally { destination.Purchase.TrySetResult(true); }
+        }
+    }
+    internal static UniTask<bool> RequestPurchase(Duckov.Economy.StockShop shop, int type, int amount)
+    {
+        var token = Guid.NewGuid().ToString("N");
+        var completion = new UniTaskCompletionSource<bool>();
+        Pending[token] = new Destination { Purchase = completion, Shop = shop, Inventory = CharacterMainControl.Main.CharacterItem.Inventory, Position = -1 };
+        SharedHome.Request("shopBuy", new { token, merchant = shop.MerchantID, type, amount });
+        return completion.Task;
+    }
+    internal static void DeliverPurchase(string token, Item item, NetPeer peer)
+    {
+        if (peer.ConnectionState != ConnectionState.Connected)
+        {
+            if (item) PlayerStorage.Push(item, true);
+            return;
+        }
+        var writer = new NetDataWriter();
+        writer.Put(token);
+        writer.Put((bool)item);
+        if (item)
+        {
+            item.Detach();
+            item.transform.SetParent(null);
+            UnityEngine.Object.DontDestroyOnLoad(item.gameObject);
+            Escrow[token] = (peer, item);
+            SaveEscrow();
+            ItemTool.WriteItemSnapshot(writer, ItemTool.MakeSnapshot(item));
+        }
+        SharedHome.Reply(peer, writer.CopyData());
     }
     internal static UniTask<Item> Split(Item item, int count)
     {
@@ -232,16 +274,35 @@ internal static class SharedHomeStorage
         if (!item || !CanTransfer) return;
         var data = new ES3File(false);
         data.Save("item", ItemStatsSystem.Data.ItemTreeData.FromItem(item));
+        var source = item.InInventory;
+        var sourcePosition = source ? source.GetIndex(item) : -1;
         item.Detach();
-        var character = SharedHomeLoadouts.Report();
-        item.DestroyTree();
-        SharedHome.Request("storageBufferPut", new { item = Convert.ToBase64String(data.LoadRawBytes()), character = Convert.ToBase64String(character), toBuffer, position });
+        var sent = false;
+        try
+        {
+            var character = SharedHomeLoadouts.Report();
+            sent = SharedHome.Request("storageBufferPut", new { item = Convert.ToBase64String(data.LoadRawBytes()), character = Convert.ToBase64String(character), toBuffer, position });
+            if (sent) item.DestroyTree();
+        }
+        finally
+        {
+            if (!sent && item)
+            {
+                SharedHome.Apply(() =>
+                {
+                    if (source && sourcePosition >= 0 && !source.GetItemAt(sourcePosition) && source.AddAt(item, sourcePosition)) return;
+                    if (!ItemUtilities.SendToPlayerCharacterInventory(item)) item.Drop(CharacterMainControl.Main, true);
+                });
+                CoopSessionLog.Write("Storage", "Deposit request unavailable; original item returned");
+            }
+        }
     }
     internal static async UniTaskVoid PutBuffer(JObject args, NetPeer peer)
     {
         var data = new ES3File(Convert.FromBase64String((string)args["item"]));
         var tree = data.Load<ItemStatsSystem.Data.ItemTreeData>("item");
         if (tree?.entries == null || tree.entries.Count == 0 || tree.entries.Count > 10000) return;
+        CoopSessionLog.Write("Storage", $"Deposit received peer={peer.EndPoint} type={tree.RootTypeID} count={tree.RootData.StackCount}");
         SharedHomeLoadouts.Receive(peer, 6, Convert.FromBase64String((string)args["character"]));
         var item = await ItemStatsSystem.Data.ItemTreeData.InstantiateAsync(tree);
         if (item)

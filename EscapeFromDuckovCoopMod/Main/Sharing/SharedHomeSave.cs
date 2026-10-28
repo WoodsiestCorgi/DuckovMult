@@ -24,7 +24,7 @@ internal static class SharedHomeSave
     private static readonly HashSet<string> Keys = new()
     {
         "EXP_Value", "QuestData", "BuildingData", "BeaconManager", "Crafting/UnlockedFormulaIDs",
-        "EconomyData", "BlackMarket_Data", "CommonVariablesData", "HasFished", "Endowment_SelectedIndex",
+        "EconomyData", "BlackMarket_Data", "CommonVariablesData", "HasFished", "GamingConsoleData", "BitcoinMiner_Data",
         "MasterKeys", "BaseSceneOverride", "GameRulesManager_RuleIndex", "Rule_Custom", "CustomDifficultyMarker"
     };
     internal static bool SharedKey(string key) => Keys.Contains(key) || key.StartsWith("PerkTree_") ||
@@ -170,15 +170,17 @@ internal static class SharedHomeSave
         foreach (var key in incoming.GetKeys()) combined.Save(key, incoming.Load(key));
         return combined.LoadRawBytes();
     }
-    private static void Begin()
+    internal static void Begin()
     {
         if (_personal != null) return;
         SavesSystem.KeyExisits("Created");
         // Preserve the current unsaved personal state as well as the disk save.
-        SavesSystem.CollectSaveData();
+        if (LevelManager.Instance && LevelManager.LevelInited) LevelManager.Instance.NotifySaveBeforeLoadScene(false);
+        else SavesSystem.CollectSaveData();
         _path = SavesSystem.CurrentFilePath;
         _personal = ES3File.cachedFiles[_path];
         ES3File.cachedFiles[_path] = new ES3File(_personal.LoadRawBytes(), _personal.settings);
+        SharedHomeSafeInventory.ClearPersonal(ES3File.cachedFiles[_path]);
         SavesSystem.LoadGlobal<bool>("SharedHome_CacheProbe");
         if (ES3File.cachedFiles.TryGetValue(SavesSystem.GlobalSaveDataFilePath, out _personalGlobal))
             ES3File.cachedFiles[SavesSystem.GlobalSaveDataFilePath] = new ES3File(_personalGlobal.LoadRawBytes(), _personalGlobal.settings);
@@ -270,7 +272,13 @@ internal static class SharedHomeSave
             foreach (var tree in PerkTreeManager.Instance.perkTrees)
                 if (tree && Has("PerkTree_" + tree.ID)) SharedHomePerks.Reload(tree);
         if (Has("QuestData")) SharedHomeQuests.Reload();
-        if (Has("EconomyData")) Load(EconomyManager.Instance);
+        if (Has("EconomyData"))
+        {
+            var previous = EconomyManager.Money;
+            Load(EconomyManager.Instance);
+            if (EconomyManager.Money != previous)
+                (AccessTools.Field(typeof(EconomyManager), "OnMoneyChanged").GetValue(null) as Action<long, long>)?.Invoke(previous, EconomyManager.Money);
+        }
         if (Has("Crafting/UnlockedFormulaIDs")) Load(CraftingManager.Instance);
         if (Has("BeaconManager")) Load(BeaconManager.Instance);
         if (Has("NoteIndexData")) Load(NoteIndex.Instance);
@@ -288,6 +296,8 @@ internal static class SharedHomeSave
         if (Has("BuildingData"))
             SharedHomeBuildings.ApplyLayout();
         SharedHomeDisplays.Reload(changed);
+        SharedHomeConsoles.Reload(changed);
+        SharedHomeMiner.Reload(changed);
         if (changed == null || changed.Any(k => k.StartsWith("PlayerStorage_Buffer")))
         {
             PlayerStorageBuffer.LoadBuffer();
@@ -296,6 +306,6 @@ internal static class SharedHomeSave
         // Warehouse replicas are updated by the existing authoritative inventory protocol.
         if (changed == null && !SharedHome.Guest) Load(PlayerStorage.Instance);
         if (changed == null && !SharedHome.Guest) SharedHomeLoadouts.ReloadDeaths();
-        if (changed == null && !SharedHome.Guest && LevelManager.Instance) LevelManager.Instance.RefreshMainCharacterFace();
+        if (changed == null && !SharedHome.Guest && LevelManager.Instance?.MainCharacter) LevelManager.Instance.RefreshMainCharacterFace();
     }
 }

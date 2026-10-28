@@ -62,7 +62,8 @@ internal static class SharedHomeBackupPatch
 [HarmonyPatch(typeof(QuestTask_KillCount), "Health_OnDead")]
 internal static class SharedHomeQuestKillPatch
 {
-    private static bool Prefix() => !SharedHome.Guest;
+    private static bool Prefix(QuestTask_KillCount __instance, Health health) =>
+        !SharedHome.Guest && AiQuestCredit.AllowNativeTask(__instance, health);
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var getter = AccessTools.PropertyGetter(typeof(CharacterMainControl), nameof(CharacterMainControl.Team));
@@ -169,7 +170,7 @@ internal static class SharedHomeQuestSubmitPatch
     private static bool Prefix(SubmitItems __instance)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
-        SharedHome.Request("taskInteract", new { quest = __instance.Master.ID, task = __instance.ID });
+        SharedHomeQuestItems.SubmitPersonal(__instance);
         return false;
     }
 }

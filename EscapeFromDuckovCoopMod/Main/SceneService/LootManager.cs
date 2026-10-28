@@ -240,6 +240,9 @@ public static class LootboxDetectUtil
     public static bool IsPrivateInventory(Inventory inv)
     {
         if (inv == null) return false;
+        if (PersonalFormulaLoot.IsPersonal(inv)) return true;
+        if (PersonalStarterLoot.IsPersonal(inv)) return true;
+        if (PersonalQuestLoot.IsPersonal(inv)) return true;
         if (DeadLootSpawnContext.LocalOnDead)
             return true;
 
@@ -296,7 +299,8 @@ public static class LootboxDetectUtil
         slot = -1;
         master = null;
 
-        if (inv == null) return false;
+        // Item.OnDestroy detaches contents after the level manager has been destroyed.
+        if (inv == null || SceneLoader.IsSceneLoading) return false;
         if (IsPrivateInventory(inv)) return false;
 
         if (IsLootboxInventory(inv))

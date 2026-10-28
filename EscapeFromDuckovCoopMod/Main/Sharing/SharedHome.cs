@@ -88,6 +88,7 @@ public static class SharedHome
         _pendingState = null;
         SharedHomeCharacterCreation.Reset();
         SharedHomeLoadouts.Reset();
+        SharedHomeInventoryTransaction.Reset();
         _remoteEnabled = false;
         SharedHomeStorage.Reset();
         if (host)
@@ -117,6 +118,13 @@ public static class SharedHome
         if (!Active || SceneLoader.IsSceneLoading || !LevelManager.LevelInited) return;
         if (Guest && _pendingState != null && !Reloading && !SharedHomeLoadouts.Restoring)
         {
+            if (!SharedHomeSave.OverlayActive)
+            {
+                // Re-enter through the menu so the personal scene cannot retain NPCs or inventory slots.
+                Apply(SharedHomeSave.Begin);
+                SceneLoader.LoadMainMenu();
+                return;
+            }
             var state = _pendingState;
             _pendingState = null;
             Apply(() => SharedHomeSave.Apply(state));
@@ -154,13 +162,15 @@ public static class SharedHome
         try { action(); }
         finally { Applying = previous; }
     }
-    internal static void Request(string action, object arguments)
+    internal static bool Request(string action, object arguments)
     {
-        if (!Guest || Applying || string.IsNullOrEmpty(_session)) return;
-        if (action != "storageTaken" && (!SharedHomeLoadouts.Ready || SharedHomeCharacterCreation.Joining)) return;
+        if (!Guest || Applying || string.IsNullOrEmpty(_session) ||
+            NetService.Instance.connectedPeer?.ConnectionState != ConnectionState.Connected) return false;
+        if (action != "storageTaken" && (!SharedHomeLoadouts.Ready || SharedHomeCharacterCreation.Joining)) return false;
         var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new { action, arguments }));
         var message = new SharedHomeRpc { Kind = 2, Session = _session, Revision = ++_requestSerial, Data = data };
         CoopTool.SendRpc(in message);
+        return true;
     }
     internal static void SendPrivate(byte kind, byte[] data, NetPeer peer = null)
     {
@@ -202,6 +212,11 @@ public static class SharedHome
             _revision = 0;
             if (!_remoteEnabled) Reset();
             else SharedHomeCompatibility.BeginClient();
+            return;
+        }
+        if (Guest && message.Kind == 12 && message.Session == _session)
+        {
+            SharedHomeInventoryTransaction.Receive(message.Data);
             return;
         }
         if (Guest && message.Kind == 3 && message.Session == _session)

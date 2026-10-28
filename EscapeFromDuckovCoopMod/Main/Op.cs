@@ -53,10 +53,10 @@ public enum Op : byte
     LOOT_REQ_SLOT_UNPLUG = 208, // 从某个物品的某个slot里拔出附件
     LOOT_REQ_SLOT_PLUG = 209, // 往某个物品的某个slot里装入附件（随包带附件snapshot）
     LOOT_REQ_SLOT_SNAPSHOT = 236, // 客户端 -> 主机：提交物品内 slots 的完整快照
-    LOOT_SEARCHED = 199, // [max] 双向：某个容器已被完整搜索（同步标记与物品鉴定状态）
-    TEAM_KILL_CREDIT = 200, // [max] 主机 -> 客户端：队友击杀计入任务
-    TEAM_PING = 201, // [max] 双向：队伍标记（准星位置）
-    MAP_MARKER = 202, // [max] 双向：同步地图上的自定义标记（添加/移除）
+    LOOT_SEARCHED = 120, // [max] 双向：某个容器已被完整搜索（同步标记与物品鉴定状态）
+    TEAM_KILL_CREDIT = 121, // [max] 主机 -> 客户端：队友击杀计入任务
+    TEAM_PING = 122, // [max] 双向：队伍标记（准星位置）
+    MAP_MARKER = 123, // [max] 双向：同步地图上的自定义标记（添加/移除）
 
     SCENE_VOTE_REQ = 210, // 客户端 -> 主机：请求发起场景投票
 
@@ -97,6 +97,11 @@ public enum Op : byte
     CORPSE_SPAWN_REQUEST = 196,
     SHARED_HOME = 197,
     SCENE_JOIN = 198,
+    ENV_LEVEL_BOOL_SNAPSHOT = 199,
+    STARTER_LOOT_CONTEXT = 200,
+    DEAD_LOOT_VISIBILITY = 201,
+    FOOTSTEP = 202,
+    SCENE_SPAWN_ENTRY = 203,
 
     AI_HEALTH_REPORT = 174,
     AI_HEALTH_BROADCAST = 175,

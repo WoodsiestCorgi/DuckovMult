@@ -68,8 +68,7 @@ internal static class SharedHomeShopBuyPatch
     private static bool Prefix(StockShop __instance, int itemTypeID, int amount, ref UniTask<bool> __result)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
-        SharedHome.Request("shopBuy", new { merchant = __instance.MerchantID, type = itemTypeID, amount });
-        __result = UniTask.FromResult(false);
+        __result = SharedHomeShopPurchase.Request(__instance, itemTypeID, amount);
         return false;
     }
 }
@@ -80,9 +79,7 @@ internal static class SharedHomeCraftPatch
     private static bool Prefix(string id, ref UniTask<List<Item>> __result)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
-        // [max] Tell the host when the recipe comes from our own save.
-        SharedHome.Request("craft", new { id, personal = SharedHomeSave.PersonalFormulaUnlocked(id) });
-        __result = UniTask.FromResult<List<Item>>(null);
+        __result = SharedHomeCrafting.Request(id);
         return false;
     }
 }

@@ -156,13 +156,8 @@ public class SceneNet : MonoBehaviour
 
     private void Server_BroadcastBeginSceneLoad()
     {
-        var returningFromDeath = Spectator.Instance.IsLocalDeathPending;
-        if (returningFromDeath)
-        {
-            Spectator.Instance._spectatorEndOnVotePending = false;
-            Spectator.Instance.EndSpectatorAndShowClosure(true);
-        }
-
+        var dead = Spectator.Instance.IsLocalDeathPending;
+        var returningFromDeath = dead && sceneTargetId == SceneInfoCollection.BaseSceneID;
         var message = new SceneBeginLoadRpc
         {
             SceneId = sceneTargetId ?? string.Empty,
@@ -172,7 +167,8 @@ public class SceneNet : MonoBehaviour
             UseLocation = sceneUseLocation,
             LocationName = sceneLocationName ?? string.Empty,
             TeleporterToken = _teleporterToken,
-            BeaconIndex = _teleporterBeaconIndex
+            BeaconIndex = _teleporterBeaconIndex,
+            SyncSpawnEntry = sceneLocationName == "OnPointerClick"
         };
 
         if (sceneLocationName == "OnPointerClick" && CoopAISettings.ActiveGeneral.TeleporterSpawnTogether)
@@ -189,6 +185,13 @@ public class SceneNet : MonoBehaviour
         }
 
         if (!string.IsNullOrEmpty(_teleporterToken) && !TeleporterTravel.AcceptCommit(_teleporterToken)) return;
+        TeleporterSpawnEntry.Begin(message);
+        if (dead && !returningFromDeath) SpectatorTravel.Begin();
+        if (returningFromDeath)
+        {
+            Spectator.Instance._spectatorEndOnVotePending = false;
+            Spectator.Instance.EndSpectatorAndShowClosure(true);
+        }
         CoopTool.SendRpc(in message);
 
         _localSceneLoadLaunched = false;
@@ -356,7 +359,7 @@ public class SceneNet : MonoBehaviour
         mySceneId = mySceneId ?? string.Empty;
 
         if (sceneLocationName != "OnPointerClick" && ver >= 2 && !string.IsNullOrEmpty(hostSceneId) && !string.IsNullOrEmpty(mySceneId))
-            if (!string.Equals(hostSceneId, mySceneId, StringComparison.Ordinal))
+            if (!Spectator.AreSameMap(hostSceneId, mySceneId))
             {
                 Debug.Log($"[SCENE] vote: ignore (diff scene) host='{hostSceneId}' me='{mySceneId}'");
                 return;
@@ -409,6 +412,7 @@ public class SceneNet : MonoBehaviour
     public void Client_OnBeginSceneLoad(SceneBeginLoadRpc message)
     {
         if (message.LocationName == "OnPointerClick" && !TeleporterTravel.AcceptCommit(message.TeleporterToken)) return;
+        TeleporterSpawnEntry.Begin(message);
         _teleporterBeaconIndex = message.BeaconIndex;
         sceneTargetId = message.SceneId ?? sceneTargetId ?? string.Empty;
         sceneCurtainGuid = string.IsNullOrEmpty(message.CurtainGuid) ? null : message.CurtainGuid;
@@ -416,6 +420,20 @@ public class SceneNet : MonoBehaviour
         sceneSaveToFile = message.SaveToFile;
         sceneUseLocation = message.UseLocation;
         sceneLocationName = message.LocationName ?? string.Empty;
+
+        if (Spectator.Instance.IsLocalDeathPending)
+        {
+            if (sceneTargetId == SceneInfoCollection.BaseSceneID)
+            {
+                Spectator.Instance.EndSpectatorAndShowClosure(true);
+                sceneVoteActive = false;
+                sceneParticipantIds.Clear();
+                sceneReady.Clear();
+                localReady = false;
+                return;
+            }
+            SpectatorTravel.Begin();
+        }
 
         _cliForceSpawnAtHost = message.ForceSpawnAtHost && sceneLocationName == "OnPointerClick";
         _cliHostReadyReceived = false;

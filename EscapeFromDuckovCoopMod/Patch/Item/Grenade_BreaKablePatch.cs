@@ -27,6 +27,7 @@ public static class Patch_Grenade_Sync
     {
         var mod = ModBehaviourF.Instance;
         if (mod == null || !mod.networkStarted) return true;
+        if (__instance.createPickup) return true;
 
         // —— 无论主机/客户端，都先缓存一次 ——
         try
@@ -178,6 +179,7 @@ public static class Patch_Grenade_Sync
     [HarmonyPatch(typeof(Grenade), nameof(Grenade.Launch))]
     private static void Grenade_Launch_Postfix(Grenade __instance, Vector3 startPoint, Vector3 velocity, CharacterMainControl fromCharacter)
     {
+        if (PickupThrowableSync.Launched(__instance, startPoint, velocity)) return;
         var mod = ModBehaviourF.Instance;
         if (mod == null || !mod.networkStarted || !mod.IsServer) return;
 
@@ -204,9 +206,12 @@ public static class Patch_Grenade_Sync
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Grenade), "Explode")]
-    private static void Grenade_Explode_Prefix(Grenade __instance, ref bool __state)
+    private static bool Grenade_Explode_Prefix(Grenade __instance, ref bool __state)
     {
         __state = __instance.createExplosion;
+        var tag = __instance.GetComponent<NetGrenadeTag>();
+        if (tag && tag.Exploded) return false;
+        if (tag) tag.Exploded = true;
         var mod = ModBehaviourF.Instance;
         if (mod != null && mod.networkStarted && !mod.IsServer)
         {
@@ -214,6 +219,7 @@ public static class Patch_Grenade_Sync
             if (!isNetworkGrenade)
                 __instance.createExplosion = false;
         }
+        return true;
     }
 
     [HarmonyPostfix]
@@ -226,8 +232,9 @@ public static class Patch_Grenade_Sync
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Grenade), "Explode")]
-    private static void Grenade_Explode_ServerBroadcast(Grenade __instance)
+    private static void Grenade_Explode_ServerBroadcast(Grenade __instance, bool __runOriginal)
     {
+        if (!__runOriginal) return;
         var mod = ModBehaviourF.Instance;
         if (mod == null || !mod.networkStarted || !mod.IsServer) return;
         COOPManager.GrenadeM.Server_OnGrenadeExploded(__instance);

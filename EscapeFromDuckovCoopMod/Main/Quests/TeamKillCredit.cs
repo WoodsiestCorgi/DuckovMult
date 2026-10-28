@@ -4,8 +4,9 @@ using Duckov.Quests.Tasks;
 namespace EscapeFromDuckovCoopMod;
 
 // [max] Team kill credit for quests (independent saves only; in the shared home quests belong to the host).
-// When a teammate kills an enemy, the host tells the other players, and each of them counts it
-// for their active "kill N enemies" tasks. Enemy type, weapon, headshot and scene rules still apply.
+// When a teammate kills an enemy, the host tells the players who neither killed nor hit it
+// (those already get the mod's own kill/assist credit), and each of them counts it for their
+// active "kill N enemies" tasks. Enemy type, weapon, headshot and scene rules still apply.
 // Tasks that need a buff are skipped (the killer's buffs are unknown here). No XP is granted.
 internal static class TeamKillCredit
 {
@@ -71,12 +72,24 @@ internal static class TeamKillCredit
                 Crit = info.crit > 0
             };
 
-            // The killer already gets the normal credit for their own kill.
-            CoopTool.SendRpc(in rpc, killerPeer);
+            // Since 1.4.1 the mod credits players who hit the target (assist), and the killer gets
+            // the normal credit. Team credit only goes to everyone else, so no kill counts twice.
+            var aiId = TryGetAiId(victim, out var id) ? id : (int?)null;
 
-            // The host's native quest code already counts kills by teammates on the player team.
-            // With friendly fire on, remote players are on another team, so credit the host here.
-            if (killerPeer != null && killer.Team != Teams.player && Enabled)
+            var manager = service.netManager;
+            if (manager != null)
+            {
+                foreach (var peer in manager.ConnectedPeerList)
+                {
+                    if (peer == null || peer == killerPeer) continue;
+                    if (aiId.HasValue && HasEvidence(AiQuestCredit.Evidence(aiId.Value, peer))) continue;
+                    CoopTool.SendRpcTo(peer, in rpc);
+                }
+            }
+
+            // The host itself: credited natively only for its own kills and assists (1.4.1+).
+            var hostAssisted = aiId.HasValue && HasEvidence(AiQuestCredit.Evidence(aiId.Value, CharacterMainControl.Main));
+            if (killerPeer != null && !hostAssisted && Enabled)
                 Apply(rpc.EnemyNameKey, rpc.WeaponTypeId, rpc.Crit);
         }
         catch (Exception e)
@@ -127,6 +140,17 @@ internal static class TeamKillCredit
 
         return true;
     }
+
+    private static bool TryGetAiId(CharacterMainControl victim, out int id)
+    {
+        id = 0;
+        var controller = victim ? victim.aiCharacterController : null;
+        if (!controller || !CoopSyncDatabase.AI.TryGet(controller, out var entry) || entry == null) return false;
+        id = entry.Id;
+        return true;
+    }
+
+    private static bool HasEvidence(DamageForwardPayload[] evidence) => evidence != null && evidence.Length > 0;
 
     private static T Get<T>(FieldInfo field, object target)
     {
