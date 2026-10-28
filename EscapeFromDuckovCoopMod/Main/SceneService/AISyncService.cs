@@ -2976,7 +2976,7 @@ public sealed partial class AISyncService
 
     private void Client_RaiseQuestKillCredit(int id, in AIHealthBroadcastRpc message)
     {
-        if (!message.HasDamage || SharedHome.Active)
+        if (!message.HasDamage || SharedHome.Active && !SharedHome.PersonalCharacter) // [max] personal characters still earn kill experience
             return;
         var attacker = CharacterMainControl.Main;
         if (!attacker) return;
@@ -3001,7 +3001,7 @@ public sealed partial class AISyncService
             if (!health) return;
             var receiver = temporary ? null : cmc.mainDamageReceiver;
             var info = message.Damage.ToDamageInfo(attacker, receiver);
-            if (!temporary) _clientLastDamage[id] = info;
+            if (!temporary && !SharedHome.Active) _clientLastDamage[id] = info; // [max] unchanged in the shared mode
             var evidence = message.QuestEvidence?.Select(d => d.ToDamageInfo(attacker, receiver)).ToArray();
             Client_RaiseQuestKillCredit(id, health, info, evidence, message.AssistCredit);
         }
@@ -3010,7 +3010,7 @@ public sealed partial class AISyncService
 
     private bool Client_RaiseQuestKillCredit(int id, Health health, DamageInfo info, DamageInfo[] evidence, bool assist)
     {
-        if (SharedHome.Active) return false;
+        if (SharedHome.Active && !SharedHome.PersonalCharacter) return false; // [max]
         if (IsServer || !health || !CharacterMainControl.Main)
             return false;
 
@@ -3024,6 +3024,7 @@ public sealed partial class AISyncService
         var item = health.TryGetCharacter()?.CharacterItem;
         if (!assist && item && health.team != Teams.player)
             Duckov.EXPManager.AddExp(item.GetInt("Exp"));
+        if (SharedHome.Active) return true; // [max] experience only: quests belong to the host
         AiQuestCredit.ApplyClient(health, evidence ?? new[] { info }, assist ? null : () => RaiseStaticHealthOnDead(health, info));
         return true;
     }

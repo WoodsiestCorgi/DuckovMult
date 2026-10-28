@@ -171,6 +171,8 @@ namespace EscapeFromDuckovCoopMod
             currentTranslations["ui.settings.teamKillCredit.desc"] = "Enemies killed by teammates count toward your kill quests (enemy type, weapon and headshot rules still apply). No XP is granted. Independent saves only. Each player sets this for themselves.";
             currentTranslations["ui.settings.pingKey"] = "Ping key";
             currentTranslations["ui.settings.pingKey.desc"] = "Press during a raid to mark the aimed spot for the whole team: a marker on screen and on the map for 15 seconds. The button on the right changes the key. Each player sets this for themselves.";
+            currentTranslations["ui.settings.sharedHomePersonalCharacter"] = "Own character in shared mode";
+            currentTranslations["ui.settings.sharedHomePersonalCharacter.desc"] = "Guests play their own character: appearance, gear, backpack, safe container, level, experience and perks come from their own save and are saved back to it. Base, quests, money, storage, recipes and the map stay shared by the host. Items taken from the host storage go to the guest's save. Quest experience goes to everyone. Host setting, applies to the next room.";
             currentTranslations["ui.ping.label"] = "{0} · {1} m";
             currentTranslations["ui.key.mouseMiddle"] = "Middle mouse";
             currentTranslations["ui.key.mouseSide"] = "Mouse {0}";

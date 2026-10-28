@@ -21,6 +21,8 @@ public static class SharedHome
     private static bool _hostEnabled;
     internal static bool Applying { get; private set; }
     internal static bool Reloading { get; set; }
+    // [max] Guests keep their own character in their own save (gear, safe, level, perks). Set by the host for the session.
+    internal static bool PersonalCharacter { get; private set; }
     public static bool Enabled => NetService.Instance?.networkStarted == true && !NetService.Instance.IsServer
         ? _remoteEnabled : CoopAISettings.ActiveGeneral.PrivateSharedHome;
     public static bool Active => NetService.Instance?.networkStarted == true && Enabled &&
@@ -62,6 +64,7 @@ public static class SharedHome
         _requestSerial = 0;
         _remoteEnabled = false;
         _hostEnabled = Enabled;
+        PersonalCharacter = NetService.Instance.IsServer && CoopAISettings.ActiveGeneral.SharedHomePersonalCharacter; // [max]
         Requests.Clear();
         NeedsFull.Clear();
         SharedHomeCompatibility.Reset();
@@ -74,7 +77,8 @@ public static class SharedHome
         if (!NetService.Instance.IsServer) return;
         Requests.Remove(peer);
         SharedHomeCompatibility.PeerConnected(peer);
-        var message = new SharedHomeRpc { Kind = 0, Session = _session, Data = new[] { Enabled ? (byte)1 : (byte)0 } };
+        // [max] Second byte: guests keep their own character.
+        var message = new SharedHomeRpc { Kind = 0, Session = _session, Data = new[] { Enabled ? (byte)1 : (byte)0, PersonalCharacter ? (byte)1 : (byte)0 } };
         CoopTool.SendRpcTo(peer, in message);
     }
     internal static void PeerValidated(NetPeer peer)
@@ -85,6 +89,7 @@ public static class SharedHome
     public static void Reset()
     {
         var host = Active && NetService.Instance.IsServer;
+        if (!host) SharedHomeLoadouts.CommitOnLeave(); // [max] write the guest's own character before leaving
         _pendingState = null;
         SharedHomeCharacterCreation.Reset();
         SharedHomeLoadouts.Reset();
@@ -205,13 +210,23 @@ public static class SharedHome
         }
         if (message.Kind == 0)
         {
-            if (message.Data?.Length != 1) return;
+            if (message.Data == null || message.Data.Length < 1 || message.Data.Length > 2) return; // [max] optional second byte
             if (_session != message.Session) Reset();
             _session = message.Session;
             _remoteEnabled = message.Data[0] != 0;
             _revision = 0;
             if (!_remoteEnabled) Reset();
-            else SharedHomeCompatibility.BeginClient();
+            else
+            {
+                PersonalCharacter = message.Data.Length > 1 && message.Data[1] != 0; // [max]
+                SharedHomeCompatibility.BeginClient();
+            }
+            return;
+        }
+        // [max] Quest experience shared by the host when guests keep their own character.
+        if (Guest && message.Kind == 40 && message.Session == _session)
+        {
+            SharedHomeProgress.ReceiveQuestExp(message.Data);
             return;
         }
         if (Guest && message.Kind == 12 && message.Session == _session)

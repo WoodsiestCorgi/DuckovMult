@@ -1479,6 +1479,14 @@
     {
       "key": "ui.key.none",
       "value": "끔"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter",
+      "value": "공유 모드에서 내 캐릭터 사용"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter.desc",
+      "value": "게스트는 자신의 캐릭터로 플레이합니다. 외형, 장비, 배낭, 안전 컨테이너, 레벨, 경험치, 스킬은 자신의 세이브에서 불러오고 자신의 세이브에 저장됩니다. 기지, 퀘스트, 돈, 창고, 레시피, 지도는 호스트와 공유합니다. 호스트 창고에서 가져온 아이템은 게스트의 세이브로 옮겨집니다. 퀘스트 경험치는 모두가 받습니다. 호스트 설정이며 다음 방부터 적용됩니다."
     }
   ]
 }

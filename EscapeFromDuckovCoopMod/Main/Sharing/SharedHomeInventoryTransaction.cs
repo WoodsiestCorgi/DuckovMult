@@ -85,13 +85,15 @@ internal static class SharedHomeInventoryTransaction
             if (safeData.lockedIndexes != null) safe.lockedIndexes.AddRange(safeData.lockedIndexes);
             var success = action == "craft"
                 ? await SharedHomeCrafting.Execute(args, character, safe, Current)
-                : await SharedHomeAtm.Execute(args, character, safe, Current);
+                : action == "perkPay" // [max] perk cost of a personal character
+                    ? SharedHomePerks.ExecutePay(args, character, safe, Current)
+                    : await SharedHomeAtm.Execute(args, character, safe, Current);
             if (!success || generation != _generation || !SharedHome.Active) return;
             profile.Save("character", ItemTreeData.FromItem(character));
             profile.Save(SharedHomeSafeInventory.ProfileKey, InventoryData.FromInventory(safe));
             result = profile.LoadRawBytes();
             if (Current()) SharedHomeLoadouts.Receive(peer, 6, result);
-            else SavesSystem.Save(profileKey, result);
+            else if (!SharedHome.PersonalCharacter) SavesSystem.Save(profileKey, result); // [max] personal characters are not stored by the host
             SharedHome.MarkDirty();
             (AccessTools.Field(typeof(ItemUtilities), "OnPlayerItemOperation").GetValue(null) as Action)?.Invoke();
         }

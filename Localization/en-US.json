@@ -1286,7 +1286,7 @@
     },
     {
       "key": "ui.sharedHome.desc",
-      "value": "Enable before hosting; guests share automatically. The host saves experience, levels, skills, quests, kills, maps, beacons, recipes, money, storage, buildings and decorations. Appearance, backpacks and equipment are saved per player and restored on rejoining. First visits create a character with native customization; tutorial progress follows the host. Personal saves are preserved and restored on leaving. Locked while connected."
+      "value": "Enable before hosting; guests share automatically. The host saves quests, kills, maps, beacons, recipes, money, storage, buildings and decorations. Guests play their own character: appearance, gear, backpack, safe container, level, experience and perks come from their own save and are saved back to it (can be turned off in the host settings; then the host stores the characters). Everything else in the guest's personal save stays unchanged. Locked while connected."
     },
     {
       "key": "ui.sharedHome.displayHostOnly",
@@ -1390,11 +1390,11 @@
     },
     {
       "key": "ui.coopMode.shared.summary",
-      "value": "• Build one world together<br>• Shared progress and public storage<br>• Characters saved by the host"
+      "value": "• Build one world together<br>• Shared quests, storage and base<br>• Your own character from your save"
     },
     {
       "key": "ui.coopMode.shared.detail",
-      "value": "One shared adventure<br>Experience, levels, skills, quests, map unlocks, storage, buildings and decorations follow the host world.<br><br>Your own character<br>The host saves your appearance, backpack and gear. New visitors create a character.<br><br>Your personal save stays separate."
+      "value": "One shared world<br>Base and buildings, quests, money, storage, recipes and the world map follow the host world.<br><br>Your own character<br>Appearance, gear, backpack, safe container, level, experience and perks come from your own save and are saved back to it. Items taken from the host storage become yours.<br><br>The host can turn this off in the settings; then the host stores the characters."
     },
     {
       "key": "ui.steam.coopMode.shared",
@@ -1479,6 +1479,14 @@
     {
       "key": "ui.key.none",
       "value": "Off"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter",
+      "value": "Own character in shared mode"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter.desc",
+      "value": "Guests play their own character: appearance, gear, backpack, safe container, level, experience and perks come from their own save and are saved back to it. Base, quests, money, storage, recipes and the map stay shared by the host. Items taken from the host storage go to the guest's save. Quest experience goes to everyone. Host setting, applies to the next room."
     }
   ]
 }

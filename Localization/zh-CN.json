@@ -1479,6 +1479,14 @@
     {
       "key": "ui.key.none",
       "value": "关闭"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter",
+      "value": "共享模式使用自己的角色"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter.desc",
+      "value": "访客使用自己的角色：外观、装备、背包、安全箱、等级、经验和技能来自自己的存档并保存回自己的存档。基地、任务、金钱、仓库、配方和地图仍由房主共享。从房主仓库取出的物品会进入访客的存档。任务经验所有人都能获得。房主设置，从下一个房间开始生效。"
     }
   ]
 }

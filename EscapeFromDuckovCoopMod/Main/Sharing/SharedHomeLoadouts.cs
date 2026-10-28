@@ -21,6 +21,7 @@ internal static class SharedHomeLoadouts
     private static byte[] _pending;
     private static byte[] _lastSent;
     private static bool _requested, _ready, _changed;
+    private static bool _leaveCommitted; // [max]
     private static float _nextReport;
     private static int _generation;
     private static readonly string[] DeathKeys = { "DeathList", "CoopCorpseRemainders", "DeadCharacterToken", "Item/LastDeadCharacter" };
@@ -84,8 +85,17 @@ internal static class SharedHomeLoadouts
             hello.Save("identity", LocalIdentity());
             hello.Save("context", context);
             hello.Save("character", ItemTreeData.FromItem(character.CharacterItem));
+            hello.Save("personal", SharedHome.PersonalCharacter); // [max]
             SharedHome.SendPrivate(4, hello.LoadRawBytes());
             _requested = true;
+        }
+        if (_pending != null && SharedHome.PersonalCharacter)
+        {
+            // [max] Personal character: keep the character from our own save (no creation, no host loadout).
+            _pending = null;
+            _ready = true;
+            _changed = true;
+            Flush();
         }
         if (_pending != null)
         {
@@ -150,6 +160,12 @@ internal static class SharedHomeLoadouts
                 if (LastReports.TryGetValue(sender, out var previous) && previous.SequenceEqual(bytes)) return;
                 var firstReport = !LastReports.ContainsKey(sender);
                 LastReports[sender] = bytes;
+                if (SharedHome.PersonalCharacter)
+                {
+                    // [max] The guest keeps the character in their own save; the host does not store it.
+                    if (firstReport) LateJoinScene.SendDestination(sender).Forget();
+                    return;
+                }
                 var saveKey = ContextKey(key, context);
                 if (!report.KeyExists(SharedHomeSafeInventory.ProfileKey))
                 {
@@ -182,6 +198,17 @@ internal static class SharedHomeLoadouts
         await UniTask.WaitUntil(() => !SharedHome.Active || sender.ConnectionState != ConnectionState.Connected ||
             !SceneLoader.IsSceneLoading && LevelManager.LevelInited && CharacterMainControl.Main?.CharacterItem);
         if (!SharedHome.Active || sender.ConnectionState != ConnectionState.Connected) return;
+        if (SharedHome.PersonalCharacter)
+        {
+            // [max] Personal character: nothing to send but the go-ahead.
+            if (!Players.TryGetValue(sender, out var owner) || owner != key) return;
+            var personal = new ES3File(false);
+            personal.Save("context", context);
+            personal.Save("createCharacter", false);
+            personal.Save("personal", true);
+            SharedHome.SendPrivate(5, personal.LoadRawBytes(), sender);
+            return;
+        }
         var create = !SavesSystem.KeyExisits(key) && !SavesSystem.Load<bool>(key + "/Created");
         var data = SavesSystem.Load<byte[]>(ContextKey(key, context));
         var reply = data == null ? new ES3File(false) : new ES3File(data);
@@ -250,12 +277,41 @@ internal static class SharedHomeLoadouts
         if (saved != null) deaths.AddRange(saved);
         ((List<DeadBodyManager.DeathInfo>)AccessTools.Field(typeof(DeadBodyManager), "spawnedBodies").GetValue(DeadBodyManager.Instance)).Clear();
     }
+    // [max] Personal character: the saved state, restored if the guest leaves before the next save point.
+    internal static bool CanCommit => SharedHome.PersonalCharacter && _ready && !Restoring && !SharedHome.Reloading &&
+        !SharedHomeCharacterCreation.Creating && !SharedHomeDisplays.Loading;
+    internal static void Committed()
+    {
+        var item = CharacterMainControl.Main ? CharacterMainControl.Main.CharacterItem : null;
+        if (_context != null && item) Personal[_context] = ItemTreeData.FromItem(item);
+    }
+
+    // [max] In the bunker, save the guest's own character when the session ends. In a raid the last
+    // save point stays (as when the game is closed in a raid).
+    internal static void CommitOnLeave()
+    {
+        _leaveCommitted = false;
+        if (!SharedHomeSave.OverlayActive || !CanCommit) return;
+        var level = LevelManager.Instance;
+        if (!level || !LevelManager.LevelInited || SceneLoader.IsSceneLoading || !level.IsBaseLevel ||
+            !CharacterMainControl.Main?.CharacterItem) return;
+        try
+        {
+            level.NotifySaveBeforeLoadScene(false);
+            _leaveCommitted = SharedHomeSave.CommitPersonal();
+            if (_leaveCommitted) Committed();
+        }
+        catch (Exception e) { Debug.LogError($"[SharedHome] Personal character save on leave failed: {e}"); }
+    }
+
     internal static void Reset()
     {
         Flush();
         _generation++;
         Unwatch();
         Personal.TryGetValue(_context ?? string.Empty, out var personal);
+        if (_leaveCommitted) personal = null; // [max] the current character was just saved
+        _leaveCommitted = false;
         Personal.Clear();
         _context = null;
         _pending = _lastSent = null;

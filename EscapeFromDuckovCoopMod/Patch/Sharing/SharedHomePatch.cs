@@ -42,7 +42,14 @@ internal static class SharedHomeAchievementPatch
 [HarmonyPatch(typeof(SavesSystem), nameof(SavesSystem.SaveFile))]
 internal static class SharedHomeSaveFilePatch
 {
-    private static bool Prefix() => !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
+    private static bool Prefix()
+    {
+        if (SharedHomeSave.Committing) return true; // [max] writing the guest's own save
+        // [max] Personal character: at every native save point the guest's own character goes to their own save.
+        if (SharedHome.Guest && SharedHomeSave.OverlayActive && SharedHomeLoadouts.CanCommit && SharedHomeSave.CommitPersonal())
+            SharedHomeLoadouts.Committed();
+        return !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
+    }
 }
 
 [HarmonyPatch]
@@ -50,13 +57,15 @@ internal static class SharedHomeCachedWritePatch
 {
     private static IEnumerable<MethodBase> TargetMethods() => typeof(ES3).GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Where(m => m.Name == "StoreCachedFile");
-    private static bool Prefix() => !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
+    private static bool Prefix() => SharedHomeSave.Committing || // [max]
+        !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
 }
 
 [HarmonyPatch(typeof(SavesSystem), "CreateBackup", typeof(string))]
 internal static class SharedHomeBackupPatch
 {
-    private static bool Prefix() => !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
+    private static bool Prefix() => SharedHomeSave.Committing || // [max]
+        !SharedHome.Guest && !SharedHomeSave.OverlayActive && !SharedHome.Reloading && !SharedHomeLoadouts.Restoring && !SharedHomeDisplays.Loading;
 }
 
 [HarmonyPatch(typeof(QuestTask_KillCount), "Health_OnDead")]
@@ -85,7 +94,7 @@ internal static class SharedHomeExpPatch
 {
     private static bool Prefix(int amount, ref bool __result)
     {
-        if (!SharedHome.Guest || SharedHome.Applying) return true;
+        if (!SharedHome.Guest || SharedHome.Applying || SharedHome.PersonalCharacter) return true; // [max] own experience
         SharedHome.Request("xp", new { amount });
         __result = true;
         return false;
@@ -110,6 +119,13 @@ internal static class SharedHomePerkBeginPatch
     private static bool Prefix(Perk __instance, ref bool __result)
     {
         if (!SharedHome.Guest || SharedHome.Applying) return true;
+        if (SharedHome.PersonalCharacter)
+        {
+            // [max] Own perk; the host takes the payment, then the unlock starts locally.
+            if (!__instance.Unlocked) SharedHomePerks.RequestUnlock(__instance);
+            __result = false;
+            return false;
+        }
         SharedHome.Request("perk", new { tree = __instance.Master.ID, perk = __instance.name, confirm = false });
         __result = false;
         return false;
@@ -122,7 +138,7 @@ internal static class SharedHomePerkConfirmPatch
 {
     private static bool Prefix(Perk __instance, ref bool __result)
     {
-        if (!SharedHome.Guest || SharedHome.Applying) return true;
+        if (!SharedHome.Guest || SharedHome.Applying || SharedHome.PersonalCharacter) return true; // [max] own perks
         SharedHome.Request("perk", new { tree = __instance.Master.ID, perk = __instance.name, confirm = true });
         __result = false;
         return false;

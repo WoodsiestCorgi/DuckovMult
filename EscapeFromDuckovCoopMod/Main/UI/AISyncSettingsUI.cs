@@ -408,6 +408,8 @@ public sealed class AISyncSettingsUI : MonoBehaviour
         CreateFloatField(network, CoopLocalization.Get("ui.settings.projectileSyncMaxDistance"), () => _workingGeneral.ProjectileSyncMaxDistance, v => _workingGeneral.ProjectileSyncMaxDistance = v, 0f, 500f, true, _defaultGeneral.ProjectileSyncMaxDistance, CoopLocalization.Get("ui.settings.projectileSyncMaxDistance.desc"));
         CreateBoolField(network, CoopLocalization.Get("ui.settings.teleporterSpawnTogether"), () => _workingGeneral.TeleporterSpawnTogether, v => _workingGeneral.TeleporterSpawnTogether = v, true, _defaultGeneral.TeleporterSpawnTogether, CoopLocalization.Get("ui.settings.teleporterSpawnTogether.desc"));
         CreateBoolField(network, CoopLocalization.Get("ui.settings.friendlyFirePlayers"), () => _workingGeneral.FriendlyFirePlayers, v => _workingGeneral.FriendlyFirePlayers = v, true, _defaultGeneral.FriendlyFirePlayers, CoopLocalization.Get("ui.settings.friendlyFirePlayers.desc"));
+        // [max] Host option for the shared mode.
+        CreateBoolField(network, CoopLocalization.Get("ui.settings.sharedHomePersonalCharacter"), () => _workingGeneral.SharedHomePersonalCharacter, v => _workingGeneral.SharedHomePersonalCharacter = v, true, _defaultGeneral.SharedHomePersonalCharacter, CoopLocalization.Get("ui.settings.sharedHomePersonalCharacter.desc"));
         // [max] Per-player options.
         CreateBoolField(network, CoopLocalization.Get("ui.settings.teamKillCredit"), () => _workingGeneral.TeamQuestKillCredit, v => _workingGeneral.TeamQuestKillCredit = v, false, _defaultGeneral.TeamQuestKillCredit, CoopLocalization.Get("ui.settings.teamKillCredit.desc"));
         CreatePingKeyField(network);

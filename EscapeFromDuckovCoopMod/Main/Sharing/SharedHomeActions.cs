@@ -16,7 +16,8 @@ internal static class SharedHomeActions
         switch (action)
         {
             case "atm":
-            case "craft": SharedHomeInventoryTransaction.Enqueue(action, args, sender); break;
+            case "craft":
+            case "perkPay": SharedHomeInventoryTransaction.Enqueue(action, args, sender); break; // [max] perkPay
             case "storageTake": SharedHomeStorage.Take(args, sender); break;
             case "storageTaken": SharedHomeStorage.FinishTake(args, sender); break;
             case "storageEdit": SharedHomeStorageOperations.Execute(args, sender).Forget(); break;
@@ -28,11 +29,13 @@ internal static class SharedHomeActions
             case "shopBuy": SharedHomeShopPurchase.Buy((string)args["token"], (string)args["merchant"], (int)args["type"], (int)args["amount"], sender).Forget(); break;
             case "unlock": SharedHomeUnlocks.Execute(args); break;
             case "xp":
+                if (SharedHome.PersonalCharacter) break; // [max] guests keep their own experience
                 var amount = (int)args["amount"];
                 if (amount > 0) EXPManager.AddExp(amount);
                 break;
             case "money": EconomyManager.Add((long)args["amount"]); break;
             case "perk":
+                if (SharedHome.PersonalCharacter) break; // [max] guests keep their own perks
                 var tree = PerkTreeManager.GetPerkTree((string)args["tree"]);
                 var perk = tree?.Perks.FirstOrDefault(p => p && p.name == (string)args["perk"]);
                 if (perk)

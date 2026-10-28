@@ -17,9 +17,12 @@ internal static class SharedHomeSafeInventory
         overlay.DeleteKey(SaveKey);
     }
 
+    // [max] Personal character: the safe is the guest's own and may be saved back to their save.
+    internal static void KeepPersonal() => _sharedInventory = null;
+
     internal static void Track(PetProxy proxy)
     {
-        if (SharedHomeSave.OverlayActive) _sharedInventory = proxy.Inventory;
+        if (SharedHomeSave.OverlayActive && !SharedHome.PersonalCharacter) _sharedInventory = proxy.Inventory; // [max]
     }
 
     internal static bool CanSave(PetProxy proxy)

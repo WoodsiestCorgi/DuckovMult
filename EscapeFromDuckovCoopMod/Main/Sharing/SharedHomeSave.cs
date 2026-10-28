@@ -27,9 +27,11 @@ internal static class SharedHomeSave
         "EconomyData", "BlackMarket_Data", "CommonVariablesData", "HasFished", "GamingConsoleData", "BitcoinMiner_Data",
         "MasterKeys", "BaseSceneOverride", "GameRulesManager_RuleIndex", "Rule_Custom", "CustomDifficultyMarker"
     };
-    internal static bool SharedKey(string key) => Keys.Contains(key) || key.StartsWith("PerkTree_") ||
+    // [max] With personal characters, experience and perks stay in each player's own save.
+    internal static bool PersonalKey(string key) => SharedHome.PersonalCharacter && (key == "EXP_Value" || key.StartsWith("PerkTree_"));
+    internal static bool SharedKey(string key) => !PersonalKey(key) && (Keys.Contains(key) || key.StartsWith("PerkTree_") ||
         key.StartsWith("PlayerStorage") || key.StartsWith("Inventory/PlayerStorage") || key.StartsWith("Item/Showcase_") || key.StartsWith("StockShop_") ||
-        key.StartsWith("ConstructionSite_") || key.StartsWith("NoteIndex") || SharedHomeWorld.ValueKey(key);
+        key.StartsWith("ConstructionSite_") || key.StartsWith("NoteIndex") || SharedHomeWorld.ValueKey(key));
 
     internal static void ResetPublished() => PublishedValues.Clear();
 
@@ -180,7 +182,8 @@ internal static class SharedHomeSave
         _path = SavesSystem.CurrentFilePath;
         _personal = ES3File.cachedFiles[_path];
         ES3File.cachedFiles[_path] = new ES3File(_personal.LoadRawBytes(), _personal.settings);
-        SharedHomeSafeInventory.ClearPersonal(ES3File.cachedFiles[_path]);
+        if (SharedHome.PersonalCharacter) SharedHomeSafeInventory.KeepPersonal(); // [max] the safe stays the guest's own
+        else SharedHomeSafeInventory.ClearPersonal(ES3File.cachedFiles[_path]);
         SavesSystem.LoadGlobal<bool>("SharedHome_CacheProbe");
         if (ES3File.cachedFiles.TryGetValue(SavesSystem.GlobalSaveDataFilePath, out _personalGlobal))
             ES3File.cachedFiles[SavesSystem.GlobalSaveDataFilePath] = new ES3File(_personalGlobal.LoadRawBytes(), _personalGlobal.settings);
@@ -205,9 +208,11 @@ internal static class SharedHomeSave
             {
                 var global = ES3File.cachedFiles[SavesSystem.GlobalSaveDataFilePath];
                 foreach (var pair in incoming.Load<Dictionary<string, bool>>(key))
-                    if (pair.Key.StartsWith("Endowment_Unlock_R_") || pair.Key == "Difficulty/RageUnlocked") global.Save(pair.Key, pair.Value);
+                    // [max] Personal characters keep their own endowment unlocks.
+                    if (pair.Key.StartsWith("Endowment_Unlock_R_") && !SharedHome.PersonalCharacter || pair.Key == "Difficulty/RageUnlocked") global.Save(pair.Key, pair.Value);
                 continue;
             }
+            if (PersonalKey(key)) continue; // [max]
             if (!SharedKey(key)) throw new InvalidOperationException("Unexpected shared save key: " + key);
             var value = incoming.Load(key);
             var single = new ES3File(false);
@@ -220,6 +225,55 @@ internal static class SharedHomeSave
             changed.Add(key);
         }
         if (reload) Reload(full ? null : changed);
+    }
+    // [max] Personal character: write everything that is not shared (character, safe, level, perks, deaths...)
+    // from the session overlay into the guest's own save and store it on disk. Shared keys keep the guest's
+    // own values, so their solo bunker, quests, money and storage are untouched.
+    private static readonly System.Reflection.FieldInfo CacheField = AccessTools.Field(typeof(ES3File), "cache");
+    internal static bool Committing { get; private set; }
+    internal static bool CommitPersonal()
+    {
+        if (_personal == null || !SharedHome.PersonalCharacter || Committing || _path != SavesSystem.CurrentFilePath) return false;
+        if (!ES3File.cachedFiles.TryGetValue(_path, out var overlay) || overlay == null || ReferenceEquals(overlay, _personal)) return false;
+        try
+        {
+            bool Personal(string key) => !string.IsNullOrEmpty(key) && !SharedKey(key);
+            var keys = new HashSet<string>(overlay.GetKeys().Where(Personal));
+            foreach (var key in _personal.GetKeys().Where(k => Personal(k) && !keys.Contains(k)).ToArray())
+                _personal.DeleteKey(key);
+            var source = CacheField?.GetValue(overlay) as System.Collections.IDictionary;
+            var target = CacheField?.GetValue(_personal) as System.Collections.IDictionary;
+            foreach (var key in keys)
+            {
+                // Copy the stored entry as is; fall back to a typed round trip.
+                if (source != null && target != null && source.Contains(key)) target[key] = source[key];
+                else _personal.Save(key, overlay.Load(key));
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SharedHome] Personal character could not be prepared for saving: {e}");
+            return false;
+        }
+
+        Committing = true;
+        ES3File.cachedFiles[_path] = _personal;
+        try
+        {
+            SavesSystem.SaveFile();
+            CoopSessionLog.Write("SharedHome", "Personal character saved");
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SharedHome] Personal character could not be saved: {e}");
+            return false;
+        }
+        finally
+        {
+            ES3File.cachedFiles[_path] = overlay;
+            Committing = false;
+        }
     }
     internal static void Restore()
     {

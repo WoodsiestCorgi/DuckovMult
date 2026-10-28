@@ -1479,6 +1479,14 @@
     {
       "key": "ui.key.none",
       "value": "Aus"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter",
+      "value": "Eigener Charakter im gemeinsamen Modus"
+    },
+    {
+      "key": "ui.settings.sharedHomePersonalCharacter.desc",
+      "value": "Gäste spielen ihren eigenen Charakter: Aussehen, Ausrüstung, Rucksack, sicherer Container, Stufe, Erfahrung und Fähigkeiten kommen aus ihrem eigenen Spielstand und werden dort gespeichert. Basis, Aufträge, Geld, Lager, Rezepte und Karte gehören weiter dem Host. Gegenstände aus dem Lager des Hosts gehen in den Spielstand des Gastes. Auftragserfahrung erhalten alle. Host-Einstellung, gilt ab dem nächsten Raum."
     }
   ]
 }
