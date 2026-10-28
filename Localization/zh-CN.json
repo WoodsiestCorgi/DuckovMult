@@ -1491,6 +1491,10 @@
     {
       "key": "ui.sharedHome.moneyDeposited",
       "value": "你的资金（{0}）已存入共享账户"
+    },
+    {
+      "key": "ui.sharedHome.keysShared",
+      "value": "你登记的钥匙已加入共享登记：{0}"
     }
   ]
 }

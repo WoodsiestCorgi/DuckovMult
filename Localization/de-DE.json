@@ -1491,6 +1491,10 @@
     {
       "key": "ui.sharedHome.moneyDeposited",
       "value": "Dein Geld ({0}) wurde dem gemeinsamen Konto gutgeschrieben"
+    },
+    {
+      "key": "ui.sharedHome.keysShared",
+      "value": "Deine registrierten Schlüssel im gemeinsamen Register hinzugefügt: {0}"
     }
   ]
 }

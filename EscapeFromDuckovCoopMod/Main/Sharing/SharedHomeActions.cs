@@ -34,7 +34,7 @@ internal static class SharedHomeActions
                 if (amount > 0) EXPManager.AddExp(amount);
                 break;
             case "money": EconomyManager.Add((long)args["amount"]); break;
-            case "personalMoney": SharedHomePersonalMoney.HostDeposit(args, sender); break; // [max]
+            case "personalShare": SharedHomePersonalTransfer.HostApply(args, sender); break; // [max]
             case "perk":
                 if (SharedHome.PersonalCharacter) break; // [max] guests keep their own perks
                 var tree = PerkTreeManager.GetPerkTree((string)args["tree"]);

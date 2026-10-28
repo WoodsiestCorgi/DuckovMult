@@ -94,7 +94,7 @@ public static class SharedHome
         SharedHomeCharacterCreation.Reset();
         SharedHomeLoadouts.Reset();
         SharedHomeInventoryTransaction.Reset();
-        SharedHomePersonalMoney.Reset(); // [max]
+        SharedHomePersonalTransfer.Reset(); // [max]
         _remoteEnabled = false;
         SharedHomeStorage.Reset();
         if (host)
@@ -136,7 +136,7 @@ public static class SharedHome
             Apply(() => SharedHomeSave.Apply(state));
         }
         SharedHomeLoadouts.Tick();
-        SharedHomePersonalMoney.Tick(); // [max]
+        SharedHomePersonalTransfer.Tick(); // [max]
         SharedHomeStorage.Ensure();
         if (!NetService.Instance.IsServer || Time.unscaledTime < _nextUpdate) return;
         _nextUpdate = Time.unscaledTime + .25f;
@@ -225,10 +225,10 @@ public static class SharedHome
             }
             return;
         }
-        // [max] The host added our own money to the shared account.
+        // [max] The host added our own money and keys to the shared world.
         if (Guest && message.Kind == 41 && message.Session == _session)
         {
-            SharedHomePersonalMoney.ReceiveAck(message.Data);
+            SharedHomePersonalTransfer.ReceiveAck(message.Data);
             return;
         }
         // [max] Quest experience shared by the host when guests keep their own character.

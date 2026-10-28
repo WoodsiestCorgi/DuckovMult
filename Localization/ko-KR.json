@@ -1491,6 +1491,10 @@
     {
       "key": "ui.sharedHome.moneyDeposited",
       "value": "내 돈({0})이 공유 계좌에 추가되었습니다"
+    },
+    {
+      "key": "ui.sharedHome.keysShared",
+      "value": "등록한 열쇠를 공유 목록에 추가했습니다: {0}"
     }
   ]
 }

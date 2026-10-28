@@ -1491,6 +1491,10 @@
     {
       "key": "ui.sharedHome.moneyDeposited",
       "value": "Seu dinheiro ({0}) foi adicionado à conta compartilhada"
+    },
+    {
+      "key": "ui.sharedHome.keysShared",
+      "value": "Suas chaves registradas adicionadas ao registro compartilhado: {0}"
     }
   ]
 }

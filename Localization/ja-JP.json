@@ -1491,6 +1491,10 @@
     {
       "key": "ui.sharedHome.moneyDeposited",
       "value": "あなたのお金（{0}）が共有口座に追加されました"
+    },
+    {
+      "key": "ui.sharedHome.keysShared",
+      "value": "登録済みの鍵を共有リストに追加しました：{0}"
     }
   ]
 }

@@ -244,6 +244,22 @@ internal static class SharedHomeSave
         }
     }
 
+    // [max] Keys registered in the guest's own save.
+    internal static IEnumerable<int> PersonalKeys()
+    {
+        if (_personal == null || !_personal.KeyExists("MasterKeys")) return Array.Empty<int>();
+        try
+        {
+            var keys = _personal.Load<List<Duckov.MasterKeys.MasterKeysManager.Status>>("MasterKeys");
+            return keys == null ? Array.Empty<int>() : keys.Where(k => k != null && k.active).Select(k => k.id).Distinct().ToArray();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SharedHome] Could not read personal keys: " + e.Message);
+            return Array.Empty<int>();
+        }
+    }
+
     // [max] Take money from the guest's own account after it went to the shared account.
     internal static void TakePersonalMoney(long amount)
     {
