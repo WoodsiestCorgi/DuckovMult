@@ -1487,6 +1487,10 @@
     {
       "key": "ui.settings.sharedHomePersonalCharacter.desc",
       "value": "Os convidados jogam com o próprio personagem: aparência, equipamento, mochila, contêiner seguro, nível, experiência e habilidades vêm do próprio save e são salvos nele. Base, missões, dinheiro, depósito, receitas e mapa continuam compartilhados pelo anfitrião. Itens tirados do depósito do anfitrião vão para o save do convidado. A experiência das missões vai para todos. Configuração do anfitrião, vale a partir da próxima sala."
+    },
+    {
+      "key": "ui.sharedHome.moneyDeposited",
+      "value": "Seu dinheiro ({0}) foi adicionado à conta compartilhada"
     }
   ]
 }

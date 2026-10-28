@@ -231,6 +231,27 @@ internal static class SharedHomeSave
     // own values, so their solo bunker, quests, money and storage are untouched.
     private static readonly System.Reflection.FieldInfo CacheField = AccessTools.Field(typeof(ES3File), "cache");
     internal static bool Committing { get; private set; }
+
+    // [max] Money on the guest's own account (their save, not the shared one).
+    internal static long PersonalMoney()
+    {
+        if (_personal == null || !_personal.KeyExists("EconomyData")) return 0;
+        try { return _personal.Load<EconomyManager.SaveData>("EconomyData").money; }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SharedHome] Could not read personal money: " + e.Message);
+            return 0;
+        }
+    }
+
+    // [max] Take money from the guest's own account after it went to the shared account.
+    internal static void TakePersonalMoney(long amount)
+    {
+        if (_personal == null || amount <= 0 || !_personal.KeyExists("EconomyData")) return;
+        var data = _personal.Load<EconomyManager.SaveData>("EconomyData");
+        data.money = Math.Max(0, data.money - amount);
+        _personal.Save("EconomyData", data);
+    }
     internal static bool CommitPersonal()
     {
         if (_personal == null || !SharedHome.PersonalCharacter || Committing || _path != SavesSystem.CurrentFilePath) return false;

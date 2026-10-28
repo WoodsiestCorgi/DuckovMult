@@ -1486,7 +1486,11 @@
     },
     {
       "key": "ui.settings.sharedHomePersonalCharacter.desc",
-      "value": "Guests play their own character: appearance, gear, backpack, safe container, level, experience and perks come from their own save and are saved back to it. Base, quests, money, storage, recipes and the map stay shared by the host. Items taken from the host storage go to the guest's save. Quest experience goes to everyone. Host setting, applies to the next room."
+      "value": "Guests play their own character: appearance, gear, backpack, safe container, level, experience and perks come from their own save and are saved back to it. Base, quests, money, storage, recipes and the map stay shared by the host. Items taken from the host storage go to the guest's save. Quest experience goes to everyone. Host setting, applies to the next room. Money on the guest's own account moves to the shared account on joining."
+    },
+    {
+      "key": "ui.sharedHome.moneyDeposited",
+      "value": "Your money ({0}) was added to the shared account"
     }
   ]
 }
